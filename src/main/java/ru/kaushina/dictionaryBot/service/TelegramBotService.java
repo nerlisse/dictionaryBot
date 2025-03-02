@@ -11,15 +11,17 @@ import ru.kaushina.dictionaryBot.config.BotConfig;
 public class TelegramBotService {
 
     @Setter
-    private MessageSender messageSender;
+    private MessageSender messageSender; // бот
 
     private final BotConfig config;
 
 
     public TelegramBotService(BotConfig config) {
+        this.messageSender = null;
         this.config = config;
     }
 
+    // обработка обновлений
     public void handleUpdate(Update update) {
         //handling update
     }

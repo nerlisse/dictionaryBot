@@ -13,7 +13,7 @@ import ru.kaushina.dictionaryBot.service.TelegramBotService;
 @Component
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
 
-    final BotConfig config;
+    private final BotConfig config;
     private final TelegramBotService botService;
 
     public TelegramBot(BotConfig config, TelegramBotService botService) {
