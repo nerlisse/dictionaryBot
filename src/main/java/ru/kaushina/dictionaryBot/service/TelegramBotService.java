@@ -34,6 +34,9 @@ public class TelegramBotService {
     private WordRepository wordRepository;
 
     @Autowired
+    private UserService userService;
+
+    @Autowired
     private MessageBuilder messageBuilder;
 
     private final BotConfig config;
@@ -54,7 +57,7 @@ public class TelegramBotService {
             User user = userRepository.findByChatId(chatId);
             System.out.println("User state: " + user.getUserState() + "\nmessage: " + message);
             if (message.equals("/start")) {
-                    registerUser(update);
+                    userService.registerUser(update);
                     SendMessage sendMessage = messageBuilder.getHomeMessage(update);
                     messageSender.executeMessage(sendMessage);
                     return;
@@ -84,23 +87,4 @@ public class TelegramBotService {
 
     }
 
-    private void registerUser(Update update) {
-        Message message = update.getMessage();
-        if (userRepository.findById(message.getChatId()).isEmpty()) {
-            long chatId = message.getChatId();
-            Chat chat = message.getChat();
-            User user = new User();
-
-            user.setChatId(chatId);
-            user.setFirstName(chat.getFirstName());
-            user.setLastName(chat.getLastName());
-            user.setUsername(chat.getUserName());
-
-            user.setUserState(UserState.MAIN_MENU);
-            user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
-
-            userRepository.save(user);
-            //log.info("registered user: {}", user.getUserName());
-        }
-    }
 }

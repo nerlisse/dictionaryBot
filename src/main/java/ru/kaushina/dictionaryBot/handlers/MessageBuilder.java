@@ -11,6 +11,7 @@ import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
 import ru.kaushina.dictionaryBot.repository.UserRepository;
+import ru.kaushina.dictionaryBot.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,10 +21,12 @@ public class MessageBuilder {
 
     private final FolderRepository folderRepository;
     private final UserRepository userRepository;
+    private final UserService userService;
 
-    public MessageBuilder(FolderRepository folderRepository, UserRepository userRepository) {
+    public MessageBuilder(FolderRepository folderRepository, UserRepository userRepository, UserService userService) {
         this.folderRepository = folderRepository;
         this.userRepository = userRepository;
+        this.userService = userService;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -79,9 +82,7 @@ public class MessageBuilder {
         message.setText(text);
 
         //setting state to CREATE_FOLDER
-        User user = userRepository.findByChatId(update.getCallbackQuery().getMessage().getChatId());
-        user.setUserState(UserState.CREATE_FOLDER);
-        userRepository.save(user);
+        userService.setUserState(chatId, UserState.CREATE_FOLDER);
 
         return message;
     }
@@ -89,25 +90,28 @@ public class MessageBuilder {
 
     public SendMessage folderCreatedMessage(Update update) {
         SendMessage message = new SendMessage();
-        message.setChatId(update.getMessage().getChatId());
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
         String folderName = update.getMessage().getText();
+        User user = userRepository.findByChatId(chatId);
 
+        if (folderRepository.findByUser_ChatIdAndName(chatId, folderName) != null) {
+            message.setText("folder with that name already exists, how could you forget?");
+        } else {
+            Folder folder = new Folder(); // creating folder
+            folder.setName(folderName);
 
-        Folder folder = new Folder(); // creating folder
-        folder.setName(folderName);
+            // connecting to user
+            folder.setUser(user);
 
-        // connecting to user
-        User user = userRepository.findByChatId(update.getMessage().getChatId());
-        folder.setUser(user);
+            // adding words
+            folder.setWords(new ArrayList<>());
 
-        // adding words
-        folder.setWords(new ArrayList<>());
+            // saving
+            folderRepository.save(folder);
 
-        // saving
-        folderRepository.save(folder);
-
-        message.setText("Folder " + folderName + " created");
-
+            message.setText("Folder " + folderName + " created");
+        }
         // going back to main menu
         user.setUserState(UserState.MAIN_MENU);
         userRepository.save(user);
