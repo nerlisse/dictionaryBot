@@ -25,7 +25,11 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
     @Override
     public void onUpdateReceived(Update update) {
-        botService.handleUpdate(update);
+        try {
+            botService.handleUpdate(update);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -40,7 +44,11 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
     @Override
     public void executeMessage(SendMessage message) throws TelegramApiException {
-
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
