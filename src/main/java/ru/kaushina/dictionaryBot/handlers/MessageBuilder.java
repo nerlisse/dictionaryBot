@@ -44,7 +44,7 @@ public class MessageBuilder {
         // adding create folder button
         var button = new InlineKeyboardButton();
         button.setText("Create new folder");
-        button.setCallbackData("create");
+        button.setCallbackData("CREATE NEW FOLDER");
         row.add(button);
         rowsInline.add(row);
 
@@ -57,6 +57,7 @@ public class MessageBuilder {
             String folderName = folder.getName();
             button.setText("folder: " + folderName);
             //need to set callbacks later
+            button.setCallbackData("FOLDER_" + folder.getId());
             row.add(button);
             rowsInline.add(row);
         }
@@ -71,13 +72,16 @@ public class MessageBuilder {
 
     public SendMessage createFolderMessage(Update update) {
         SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
         message.setChatId(chatId.toString());
+        //asking to enter folder name
         String text = "enter new folder name: ";
         message.setText(text);
 
-        User user = userRepository.findByUsername(update.getMessage().getFrom().getUserName());
+        //setting state to CREATE_FOLDER
+        User user = userRepository.findByChatId(update.getCallbackQuery().getMessage().getChatId());
         user.setUserState(UserState.CREATE_FOLDER);
+        userRepository.save(user);
 
         return message;
     }
@@ -86,7 +90,8 @@ public class MessageBuilder {
     public SendMessage folderCreatedMessage(Update update) {
         SendMessage message = new SendMessage();
         message.setChatId(update.getMessage().getChatId());
-        String folderName = String.valueOf(update.getMessage());
+        String folderName = update.getMessage().getText();
+
 
         Folder folder = new Folder(); // creating folder
         folder.setName(folderName);
@@ -103,7 +108,9 @@ public class MessageBuilder {
 
         message.setText("Folder " + folderName + " created");
 
+        // going back to main menu
         user.setUserState(UserState.MAIN_MENU);
+        userRepository.save(user);
 
         return message;
 
