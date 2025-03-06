@@ -1,17 +1,34 @@
 package ru.kaushina.dictionaryBot.service;
 
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.telegram.telegrambots.meta.api.objects.Chat;
+import org.telegram.telegrambots.meta.api.objects.Message;
+import ru.kaushina.dictionaryBot.model.User;
+import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.repository.FolderRepository;
+import ru.kaushina.dictionaryBot.repository.UserRepository;
+import ru.kaushina.dictionaryBot.repository.WordRepository;
 import ru.kaushina.dictionaryBot.service.MessageSender;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
 
+import java.sql.Timestamp;
+
 @Service
 public class TelegramBotService {
 
     @Setter
     private MessageSender messageSender; // бот
+
+    @Autowired
+    private UserRepository userRepository;
+    @Autowired
+    private FolderRepository folderRepository;
+    @Autowired
+    private WordRepository wordRepository;
 
     private final BotConfig config;
 
@@ -29,7 +46,8 @@ public class TelegramBotService {
         if (update.hasMessage() && update.getMessage().hasText()) {
             switch (message) {
                 case "/start":
-
+                    registerUser(update);
+                    //call start screen
                     break;
             }
         }
@@ -39,5 +57,25 @@ public class TelegramBotService {
 
         //start command?
 
+    }
+
+    private void registerUser(Update update) {
+        Message message = update.getMessage();
+        if (userRepository.findById(message.getChatId()).isEmpty()) {
+            long chatId = message.getChatId();
+            Chat chat = message.getChat();
+            User user = new User();
+
+            user.setChatId(chatId);
+            user.setFirstName(chat.getFirstName());
+            user.setLastName(chat.getLastName());
+            user.setUsername(chat.getUserName());
+
+            user.setUserState(UserState.MAIN_MENU);
+            user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
+
+            userRepository.save(user);
+            //log.info("registered user: {}", user.getUserName());
+        }
     }
 }
