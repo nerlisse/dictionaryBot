@@ -34,26 +34,31 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void registerUser(Update update) {
+    public User registerUser(Update update) {
         Message message = update.getMessage();
         long chatId = message.getChatId();
 
-        if (userRepository.findById(chatId).isEmpty()) {
-
-            Chat chat = message.getChat();
-            User user = new User();
-
-            user.setChatId(chatId);
-            user.setFirstName(chat.getFirstName());
-            user.setLastName(chat.getLastName());
-            user.setUsername(chat.getUserName());
-
-            user.setUserState(UserState.MAIN_MENU);
-            user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
-
-            userRepository.save(user);
-            //log.info("registered user: {}", user.getUserName());
+        if (userRepository.findById(chatId).isPresent()) {
+            return null;
         }
+
+        Chat chat = message.getChat();
+        User user = new User();
+
+        user.setChatId(chatId);
+        user.setFirstName(chat.getFirstName());
+        user.setLastName(chat.getLastName());
+        user.setUsername(chat.getUserName());
+
+        user.setUserState(UserState.MAIN_MENU);
+        user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
+
+        return userRepository.save(user);
+        //log.info("registered user: {}", user.getUserName());
+    }
+
+    public void save(User user) {
+        userRepository.save(user);
     }
 
 }

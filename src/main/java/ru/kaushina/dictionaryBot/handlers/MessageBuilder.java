@@ -11,6 +11,7 @@ import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
 import ru.kaushina.dictionaryBot.repository.UserRepository;
+import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 
 import java.util.ArrayList;
@@ -22,11 +23,13 @@ public class MessageBuilder {
     private final FolderRepository folderRepository;
     private final UserRepository userRepository;
     private final UserService userService;
+    private final FolderService folderService;
 
-    public MessageBuilder(FolderRepository folderRepository, UserRepository userRepository, UserService userService) {
+    public MessageBuilder(FolderRepository folderRepository, UserRepository userRepository, UserService userService, FolderService folderService) {
         this.folderRepository = folderRepository;
         this.userRepository = userRepository;
         this.userService = userService;
+        this.folderService = folderService;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -52,7 +55,7 @@ public class MessageBuilder {
         rowsInline.add(row);
 
         //find all folders of users
-        List<Folder> folders = folderRepository.findByUser_ChatId(chatId);
+        List<Folder> folders = folderService.findByUser_ChatId(chatId);
         //set all of them in inline markup
         for (Folder folder : folders) {
             row = new ArrayList<>();
@@ -93,29 +96,14 @@ public class MessageBuilder {
         Long chatId = update.getMessage().getChatId();
         message.setChatId(chatId.toString());
         String folderName = update.getMessage().getText();
-        User user = userRepository.findByChatId(chatId);
 
-        if (folderRepository.findByUser_ChatIdAndName(chatId, folderName) != null) {
+        Folder folder = folderService.createFolder(folderName, chatId);
+
+        if (folder != null) {
             message.setText("folder with that name already exists, how could you forget?");
         } else {
-            Folder folder = new Folder(); // creating folder
-            folder.setName(folderName);
-
-            // connecting to user
-            folder.setUser(user);
-
-            // adding words
-            folder.setWords(new ArrayList<>());
-
-            // saving
-            folderRepository.save(folder);
-
             message.setText("Folder " + folderName + " created");
         }
-        // going back to main menu
-        user.setUserState(UserState.MAIN_MENU);
-        userRepository.save(user);
-
         return message;
 
     }

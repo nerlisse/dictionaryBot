@@ -27,13 +27,6 @@ public class TelegramBotService {
     private MessageSender messageSender; // бот
 
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FolderRepository folderRepository;
-    @Autowired
-    private WordRepository wordRepository;
-
-    @Autowired
     private UserService userService;
 
     @Autowired
@@ -54,15 +47,16 @@ public class TelegramBotService {
         if (update.hasMessage() && update.getMessage().hasText()) {
             String message = update.getMessage().getText();
             long chatId = update.getMessage().getChatId();
-            User user = userRepository.findByChatId(chatId);
-            System.out.println("User state: " + user.getUserState() + "\nmessage: " + message);
+
+            User user = userService.findByChatId(chatId);
+
             if (message.equals("/start")) {
                     userService.registerUser(update);
                     SendMessage sendMessage = messageBuilder.getHomeMessage(update);
                     messageSender.executeMessage(sendMessage);
                     return;
-            } else
-            if (user.getUserState().equals(UserState.CREATE_FOLDER)) {
+            }
+            else if (user.getUserState().equals(UserState.CREATE_FOLDER)) {
                 SendMessage sendMessage = messageBuilder.folderCreatedMessage(update);
                 messageSender.executeMessage(sendMessage);
                 sendMessage = messageBuilder.getHomeMessage(update);
@@ -71,11 +65,7 @@ public class TelegramBotService {
         }
         else if (update.hasCallbackQuery()) {
             String callbackData = update.getCallbackQuery().getData();
-            System.out.println("got callback data: " + callbackData);
-            Long messageId = Long.valueOf(update.getCallbackQuery().getMessage().getMessageId());
-            System.out.println("messageId: " + messageId);
             long chatId = update.getCallbackQuery().getMessage().getChatId();
-            System.out.println("chatId: " + chatId);
 
             if (callbackData.equals("CREATE NEW FOLDER")) {
                 SendMessage sendMessage = messageBuilder.createFolderMessage(update);
