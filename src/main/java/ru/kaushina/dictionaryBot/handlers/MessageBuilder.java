@@ -7,7 +7,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.User;
+import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
+import ru.kaushina.dictionaryBot.repository.UserRepository;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +19,11 @@ import java.util.List;
 public class MessageBuilder {
 
     private final FolderRepository folderRepository;
+    private final UserRepository userRepository;
 
-    public MessageBuilder(FolderRepository folderRepository) {
+    public MessageBuilder(FolderRepository folderRepository, UserRepository userRepository) {
         this.folderRepository = folderRepository;
+        this.userRepository = userRepository;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -62,5 +67,18 @@ public class MessageBuilder {
 
         return message;
 
+    }
+
+    public SendMessage createFolderMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        String text = "enter new folder name: ";
+        message.setText(text);
+
+        User user = userRepository.findByUsername(update.getMessage().getFrom().getUserName());
+        user.setUserState(UserState.CREATE_FOLDER);
+
+        return message;
     }
 }
