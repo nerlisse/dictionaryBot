@@ -33,6 +33,9 @@ public class TelegramBotService {
     @Autowired
     private WordRepository wordRepository;
 
+    @Autowired
+    private MessageBuilder messageBuilder;
+
     private final BotConfig config;
 
 
@@ -50,7 +53,7 @@ public class TelegramBotService {
             switch (message) {
                 case "/start":
                     registerUser(update);
-                    SendMessage sendMessage = MessageBuilder.getHomeMessage(update);
+                    SendMessage sendMessage = messageBuilder.getHomeMessage(update);
                     messageSender.executeMessage(sendMessage);
                     break;
             }
