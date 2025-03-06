@@ -1,0 +1,66 @@
+package ru.kaushina.dictionaryBot.handlers;
+
+
+import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.repository.FolderRepository;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class MessageBuilder {
+
+    private final FolderRepository folderRepository;
+
+    public MessageBuilder(FolderRepository folderRepository) {
+        this.folderRepository = folderRepository;
+    }
+
+    public SendMessage getHomeMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        // set chatid
+        message.setChatId(chatId.toString());
+
+        //set text message
+        String text = "hello! thx for using this bot. here are your folders: ";
+        message.setText(text);
+
+        //set inline markup
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        // adding create folder button
+        var button = new InlineKeyboardButton();
+        button.setText("Create new folder");
+        button.setCallbackData("create");
+        row.add(button);
+        rowsInline.add(row);
+
+        //find all folders of users
+        List<Folder> folders = folderRepository.findByUser_ChatId(chatId);
+        //set all of them in inline markup
+        for (Folder folder : folders) {
+            row = new ArrayList<>();
+            button = new InlineKeyboardButton();
+            String folderName = folder.getName();
+            button.setText("folder: " + folderName);
+            //need to set callbacks later
+            row.add(button);
+            rowsInline.add(row);
+        }
+
+        //set markup for message
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+        message.setReplyMarkup(inlineKeyboardMarkup);
+
+        return message;
+
+    }
+}

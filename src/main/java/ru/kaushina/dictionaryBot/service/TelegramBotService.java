@@ -2,8 +2,11 @@ package ru.kaushina.dictionaryBot.service;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
@@ -39,7 +42,7 @@ public class TelegramBotService {
     }
 
     // обработка обновлений
-    public void handleUpdate(Update update) {
+    public void handleUpdate(Update update) throws TelegramApiException {
         //handling update
         String message = update.getMessage().getText();
         long chatId = update.getMessage().getChatId();
@@ -47,7 +50,8 @@ public class TelegramBotService {
             switch (message) {
                 case "/start":
                     registerUser(update);
-                    //call start screen
+                    SendMessage sendMessage = MessageBuilder.getHomeMessage(update);
+                    messageSender.executeMessage(sendMessage);
                     break;
             }
         }
