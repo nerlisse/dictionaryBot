@@ -81,4 +81,31 @@ public class MessageBuilder {
 
         return message;
     }
+
+
+    public SendMessage folderCreatedMessage(Update update) {
+        SendMessage message = new SendMessage();
+        message.setChatId(update.getMessage().getChatId());
+        String folderName = String.valueOf(update.getMessage());
+
+        Folder folder = new Folder(); // creating folder
+        folder.setName(folderName);
+
+        // connecting to user
+        User user = userRepository.findByChatId(update.getMessage().getChatId());
+        folder.setUser(user);
+
+        // adding words
+        folder.setWords(new ArrayList<>());
+
+        // saving
+        folderRepository.save(folder);
+
+        message.setText("Folder " + folderName + " created");
+
+        user.setUserState(UserState.MAIN_MENU);
+
+        return message;
+
+    }
 }

@@ -47,19 +47,32 @@ public class TelegramBotService {
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
         //handling update
-        String message = update.getMessage().getText();
-        long chatId = update.getMessage().getChatId();
+
         if (update.hasMessage() && update.getMessage().hasText()) {
-            switch (message) {
-                case "/start":
+            String message = update.getMessage().getText();
+            long chatId = update.getMessage().getChatId();
+            if (message.equals("/start")) {
                     registerUser(update);
                     SendMessage sendMessage = messageBuilder.getHomeMessage(update);
                     messageSender.executeMessage(sendMessage);
-                    break;
+                    return;
+            }
+            User user = userRepository.findByChatId(chatId);
+            if (user.getUserState().equals(UserState.CREATE_FOLDER)) {
+                SendMessage sendMessage = messageBuilder.folderCreatedMessage(update);
+                messageSender.executeMessage(sendMessage);
+                messageSender.executeMessage(messageBuilder.getHomeMessage(update));
             }
         }
         else if (update.hasCallbackQuery()) {
+            String callbackData = update.getCallbackQuery().getData();
+            Long messageId = Long.valueOf(update.getCallbackQuery().getMessage().getMessageId());
+            long chatId = update.getCallbackQuery().getMessage().getChatId();
 
+            if (callbackData.equals("CREATE NEW FOLDER")) {
+                SendMessage sendMessage = messageBuilder.createFolderMessage(update);
+                messageSender.executeMessage(sendMessage);
+            }
         }
 
         //start command?
