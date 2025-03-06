@@ -13,7 +13,6 @@ import java.sql.Timestamp;
 @Service
 public class UserService {
 
-
     private final UserRepository userRepository;
 
     public UserService(UserRepository userRepository) {
