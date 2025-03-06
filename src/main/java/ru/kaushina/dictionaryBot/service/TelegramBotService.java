@@ -24,5 +24,20 @@ public class TelegramBotService {
     // обработка обновлений
     public void handleUpdate(Update update) {
         //handling update
+        String message = update.getMessage().getText();
+        long chatId = update.getMessage().getChatId();
+        if (update.hasMessage() && update.getMessage().hasText()) {
+            switch (message) {
+                case "/start":
+
+                    break;
+            }
+        }
+        else if (update.hasCallbackQuery()) {
+
+        }
+
+        //start command?
+
     }
 }
