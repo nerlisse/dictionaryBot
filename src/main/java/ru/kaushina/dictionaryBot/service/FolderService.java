@@ -1,5 +1,6 @@
 package ru.kaushina.dictionaryBot.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.User;
@@ -9,6 +10,7 @@ import ru.kaushina.dictionaryBot.repository.FolderRepository;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 @Service
 public class FolderService {
 
@@ -21,7 +23,9 @@ public class FolderService {
     }
 
     public List<Folder> findByUser_ChatId(Long chatId) {
-        return folderRepository.findByUser_ChatId(chatId);
+        List<Folder> folders = folderRepository.findByUser_ChatId(chatId);
+        log.info("Found {} folders for user with chatId: {}", folders.size(), chatId);
+        return folders;
     }
 
     public Folder findByUser_ChatIdAndName(Long chatId, String name) {
@@ -34,23 +38,38 @@ public class FolderService {
 
     public Folder createFolder(String folderName, Long chatId) {
         User user = userService.findByChatId(chatId);
-        if (findByUser_ChatIdAndName(chatId, folderName) != null)
+
+        if (user == null) {
+            log.error("can't create folder {}: user with chatId {} not found", folderName, chatId);
             return null;
+        }
 
-        Folder folder = new Folder(); // creating folder
-        folder.setName(folderName);
+        if (findByUser_ChatIdAndName(chatId, folderName) != null) {
+            log.warn("folder with name {} for user {} already exists", folderName, chatId);
+            return null;
+        }
 
-        // connecting to user
-        folder.setUser(user);
+        try {
+            Folder folder = new Folder(); // creating folder
+            folder.setName(folderName);
 
-        // adding words
-        folder.setWords(new ArrayList<>());
+            // connecting to user
+            folder.setUser(user);
 
-        // going back to main menu
-        userService.setUserState(chatId, UserState.MAIN_MENU);
-        userService.save(user);
-        // saving
-        return folderRepository.save(folder);
+            // adding words
+            folder.setWords(new ArrayList<>());
+
+            Folder savedFolder = folderRepository.save(folder);
+
+            // going back to main menu
+            userService.setUserState(chatId, UserState.MAIN_MENU);
+            userService.save(user);
+
+            return savedFolder;
+        } catch (Exception e) {
+            log.error("Error creating folder {}: {}" , folderName, e.getMessage());
+        }
+        return null;
 
     }
 }

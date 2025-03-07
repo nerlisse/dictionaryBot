@@ -1,5 +1,6 @@
 package ru.kaushina.dictionaryBot.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -10,6 +11,7 @@ import ru.kaushina.dictionaryBot.repository.UserRepository;
 
 import java.sql.Timestamp;
 
+@Slf4j
 @Service
 public class UserService {
 
@@ -29,8 +31,14 @@ public class UserService {
 
     public void setUserState(Long chatId, UserState userState) {
         User user = userRepository.findByChatId(chatId);
-        user.setUserState(userState);
-        userRepository.save(user);
+        if (user != null) {
+            user.setUserState(userState);
+            userRepository.save(user);
+            log.info("User state updated successfully: {} -> {}", chatId, userState);
+        }
+        else {
+            log.warn("failed to update state: user with chatId {} not found", chatId);
+        }
     }
 
     public User registerUser(Update update) {
@@ -38,6 +46,7 @@ public class UserService {
         long chatId = message.getChatId();
 
         if (userRepository.findById(chatId).isPresent()) {
+            log.warn("User with chatId {} already exists, skip reg", chatId);
             return null;
         }
 
@@ -52,8 +61,9 @@ public class UserService {
         user.setUserState(UserState.MAIN_MENU);
         user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
 
+        log.info("registered user: {}, chatId: {}", user.getUsername(), chatId);
         return userRepository.save(user);
-        //log.info("registered user: {}", user.getUserName());
+
     }
 
     public void save(User user) {

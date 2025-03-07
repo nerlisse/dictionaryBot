@@ -1,5 +1,6 @@
 package ru.kaushina.dictionaryBot.bot;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -10,6 +11,7 @@ import ru.kaushina.dictionaryBot.config.BotConfig;
 import ru.kaushina.dictionaryBot.service.MessageSender;
 import ru.kaushina.dictionaryBot.service.TelegramBotService;
 
+@Slf4j
 @Component
 public class TelegramBot extends TelegramLongPollingBot implements MessageSender {
 
@@ -46,8 +48,9 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     public void executeMessage(SendMessage message) throws TelegramApiException {
         try {
             execute(message);
+            log.info("message sent to user {}: {}", message.getChatId(), message.getText());
         } catch (TelegramApiException e) {
-            throw new RuntimeException(e);
+            log.error("failed to send message to user {}: {}", message.getChatId(), e.getMessage());
         }
     }
 

@@ -1,6 +1,7 @@
 package ru.kaushina.dictionaryBot.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -15,6 +16,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
 
 
+@Slf4j
 @Service
 public class TelegramBotService {
 
@@ -41,40 +43,55 @@ public class TelegramBotService {
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
         //handling update
-
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            String message = update.getMessage().getText();
-            long chatId = update.getMessage().getChatId();
-
-            User user = userService.findByChatId(chatId);
-
-            if (message.equals("/start")) { //start command
-                messageHandler.startCommandHandler(update); //handle start command
-                SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-                messageSender.executeMessage(sendMessage); //execute the message
-                return;
-
+        try {
+            if (update.hasMessage() && update.getMessage().hasText()) {
+                handleTextMessage(update);
+            } else if (update.hasCallbackQuery()) { // if some button pressed
+                handleCallbackQuery(update);
             }
+        } catch (TelegramApiException e) {
+            log.error("Error handling update: {}", e.getMessage());
+        }
+    }
 
-            if (user.getUserState().equals(UserState.CREATE_FOLDER)) { // user entered new folder name
-                Folder folder = messageHandler.folderCreationHandler(update);
-                SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
-                messageSender.executeMessage(sendMessage);
+    private void handleTextMessage(Update update) throws TelegramApiException {
+        String message = update.getMessage().getText();
+        long chatId = update.getMessage().getChatId();
 
-                sendMessage = messageBuilder.getHomeMessage(update); //send home message
-                messageSender.executeMessage(sendMessage);
-                return;
-            }
+        log.info("Received message from user {}: '{}'", chatId, message);
 
-        } else if (update.hasCallbackQuery()) { // if some button pressed
-            String callbackData = update.getCallbackQuery().getData();
-            long chatId = update.getCallbackQuery().getMessage().getChatId();
+        User user = userService.findByChatId(chatId);
 
-            if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
-                messageHandler.createFolderHandler(update);
-                SendMessage sendMessage = messageBuilder.createFolderMessage(update);
-                messageSender.executeMessage(sendMessage);
-            }
+        if (message.equals("/start")) { //start command
+            messageHandler.startCommandHandler(update); //handle start command
+            SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
+            messageSender.executeMessage(sendMessage); //execute the message
+            return;
+
+        }
+
+        if (user.getUserState().equals(UserState.CREATE_FOLDER)) { // user entered new folder name
+
+            Folder folder = messageHandler.folderCreationHandler(update);
+            SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
+            messageSender.executeMessage(sendMessage);
+
+            sendMessage = messageBuilder.getHomeMessage(update); //send home message
+            messageSender.executeMessage(sendMessage);
+            return;
+        }
+    }
+
+    private void handleCallbackQuery(Update update) throws TelegramApiException {
+        String callbackData = update.getCallbackQuery().getData();
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+        log.info("Received callback '{}' from user {}", callbackData, chatId);
+
+        if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
+            messageHandler.createFolderHandler(update);
+            SendMessage sendMessage = messageBuilder.createFolderMessage(update);
+            messageSender.executeMessage(sendMessage);
         }
     }
 
