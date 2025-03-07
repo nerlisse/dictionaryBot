@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface FolderRepository extends JpaRepository<Folder, Long> {
     List<Folder> findByUser_ChatId(Long chatId);
+    Folder findByUser_ChatIdAndName(Long chatId, String name);
 }

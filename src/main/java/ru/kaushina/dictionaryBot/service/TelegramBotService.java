@@ -1,25 +1,22 @@
 package ru.kaushina.dictionaryBot.service;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
-import org.telegram.telegrambots.meta.api.objects.Chat;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
+import ru.kaushina.dictionaryBot.handlers.MessageHandler;
+import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
-import ru.kaushina.dictionaryBot.repository.FolderRepository;
-import ru.kaushina.dictionaryBot.repository.UserRepository;
-import ru.kaushina.dictionaryBot.repository.WordRepository;
-import ru.kaushina.dictionaryBot.service.MessageSender;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
 
-import java.sql.Timestamp;
 
+@Slf4j
 @Service
 public class TelegramBotService {
 
@@ -27,14 +24,13 @@ public class TelegramBotService {
     private MessageSender messageSender; // бот
 
     @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FolderRepository folderRepository;
-    @Autowired
-    private WordRepository wordRepository;
+    private UserService userService;
 
     @Autowired
     private MessageBuilder messageBuilder;
+
+    @Autowired
+    private MessageHandler messageHandler;
 
     private final BotConfig config;
 
@@ -47,42 +43,56 @@ public class TelegramBotService {
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
         //handling update
+        try {
+            if (update.hasMessage() && update.getMessage().hasText()) {
+                handleTextMessage(update);
+            } else if (update.hasCallbackQuery()) { // if some button pressed
+                handleCallbackQuery(update);
+            }
+        } catch (TelegramApiException e) {
+            log.error("Error handling update: {}", e.getMessage());
+        }
+    }
+
+    private void handleTextMessage(Update update) throws TelegramApiException {
         String message = update.getMessage().getText();
         long chatId = update.getMessage().getChatId();
-        if (update.hasMessage() && update.getMessage().hasText()) {
-            switch (message) {
-                case "/start":
-                    registerUser(update);
-                    SendMessage sendMessage = messageBuilder.getHomeMessage(update);
-                    messageSender.executeMessage(sendMessage);
-                    break;
-            }
-        }
-        else if (update.hasCallbackQuery()) {
+
+        log.info("Received message from user {}: '{}'", chatId, message);
+
+        User user = userService.findByChatId(chatId);
+
+        if (message.equals("/start")) { //start command
+            messageHandler.startCommandHandler(update); //handle start command
+            SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
+            messageSender.executeMessage(sendMessage); //execute the message
+            return;
 
         }
 
-        //start command?
+        if (user.getUserState().equals(UserState.CREATE_FOLDER)) { // user entered new folder name
 
-    }
+            Folder folder = messageHandler.folderCreationHandler(update);
+            SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
+            messageSender.executeMessage(sendMessage);
 
-    private void registerUser(Update update) {
-        Message message = update.getMessage();
-        if (userRepository.findById(message.getChatId()).isEmpty()) {
-            long chatId = message.getChatId();
-            Chat chat = message.getChat();
-            User user = new User();
-
-            user.setChatId(chatId);
-            user.setFirstName(chat.getFirstName());
-            user.setLastName(chat.getLastName());
-            user.setUsername(chat.getUserName());
-
-            user.setUserState(UserState.MAIN_MENU);
-            user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
-
-            userRepository.save(user);
-            //log.info("registered user: {}", user.getUserName());
+            sendMessage = messageBuilder.getHomeMessage(update); //send home message
+            messageSender.executeMessage(sendMessage);
+            return;
         }
     }
+
+    private void handleCallbackQuery(Update update) throws TelegramApiException {
+        String callbackData = update.getCallbackQuery().getData();
+        long chatId = update.getCallbackQuery().getMessage().getChatId();
+
+        log.info("Received callback '{}' from user {}", callbackData, chatId);
+
+        if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
+            messageHandler.createFolderHandler(update);
+            SendMessage sendMessage = messageBuilder.createFolderMessage(update);
+            messageSender.executeMessage(sendMessage);
+        }
+    }
+
 }
