@@ -77,25 +77,19 @@ public class MessageBuilder {
         String text = "enter new folder name: ";
         message.setText(text);
 
-        //setting state to CREATE_FOLDER
-        userService.setUserState(chatId, UserState.CREATE_FOLDER);
-
         return message;
     }
 
 
-    public SendMessage folderCreatedMessage(Update update) {
+    public SendMessage folderCreatedMessage(Update update, Folder folder) {
         SendMessage message = new SendMessage();
         Long chatId = update.getMessage().getChatId();
         message.setChatId(chatId.toString());
-        String folderName = update.getMessage().getText();
-
-        Folder folder = folderService.createFolder(folderName, chatId);
 
         if (folder == null) {
             message.setText("folder with that name already exists, how could you forget?");
         } else {
-            message.setText("Folder " + folderName + " created");
+            message.setText("Folder " + folder.getName() + " created");
         }
         return message;
 
