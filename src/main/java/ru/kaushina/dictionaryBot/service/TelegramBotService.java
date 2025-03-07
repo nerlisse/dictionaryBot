@@ -92,6 +92,17 @@ public class TelegramBotService {
             messageHandler.createFolderHandler(update);
             SendMessage sendMessage = messageBuilder.createFolderMessage(update);
             messageSender.executeMessage(sendMessage);
+            return;
+        }
+
+        if (callbackData.contains("DELETE FOLDER_")) {
+            //delete folder
+            return;
+        }
+
+        if (callbackData.contains("SHOW FOLDER_")) {
+            //show folder menu
+            return;
         }
     }
 

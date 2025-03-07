@@ -13,6 +13,7 @@ import ru.kaushina.dictionaryBot.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 public class MessageBuilder {
@@ -56,7 +57,7 @@ public class MessageBuilder {
             String folderName = folder.getName();
             button.setText("folder: " + folderName);
             //need to set callbacks later
-            button.setCallbackData("FOLDER_" + folder.getId());
+            button.setCallbackData("SHOW FOLDER_" + folder.getId());
             row.add(button);
             rowsInline.add(row);
         }
@@ -91,6 +92,68 @@ public class MessageBuilder {
         } else {
             message.setText("Folder " + folder.getName() + " created");
         }
+        return message;
+
+    }
+
+    //show folder menu
+    public SendMessage folderShowMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(13));
+        Optional<Folder> folder = folderService.findById(folderId);
+        if (folder.isEmpty()) {
+            message.setText("folder with that name does not exist");
+            return message;
+        }
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        //button for adding a word
+        var button = new InlineKeyboardButton();
+        button.setText("Add word");
+        button.setCallbackData("ADD WORD TO FOLDER_" + folderId);
+        row.add(button);
+
+        // button for deleting word
+        button = new InlineKeyboardButton();
+        button.setText("Delete word");
+        button.setCallbackData("DELETE WORD FROM FOLDER_" + folderId);
+        row.add(button);
+
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
+
+        //button for showing all words
+        button = new InlineKeyboardButton();
+        button.setText("Show all words");
+        button.setCallbackData("SHOW WORDS FROM FOLDER_" + folderId);
+        row.add(button);
+
+        // button for deleting the folder
+        button = new InlineKeyboardButton();
+        button.setText("Delete folder");
+        button.setCallbackData("DELETE FOLDER_" + folderId);
+        row.add(button);
+
+        rowsInline.add(row);
+        row = new ArrayList<>();
+
+        // button for home screen
+        button = new InlineKeyboardButton();
+        button.setText("Go back");
+        button.setCallbackData("HOME");
+        row.add(button);
+
+        rowsInline.add(row);
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+        message.setReplyMarkup(inlineKeyboardMarkup);
+
         return message;
 
     }

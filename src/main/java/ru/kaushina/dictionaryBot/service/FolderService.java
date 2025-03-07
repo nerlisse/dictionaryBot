@@ -9,6 +9,7 @@ import ru.kaushina.dictionaryBot.repository.FolderRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -30,6 +31,10 @@ public class FolderService {
 
     public Folder findByUser_ChatIdAndName(Long chatId, String name) {
         return folderRepository.findByUser_ChatIdAndName(chatId, name);
+    }
+
+    public Optional<Folder> findById(Long id) {
+        return folderRepository.findById(id);
     }
 
     public void save(Folder folder) {
