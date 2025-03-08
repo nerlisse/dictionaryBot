@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
@@ -89,6 +90,15 @@ public class TelegramBotService {
         }
     }
 
+    private void executeEditMessage(Update update) throws TelegramApiException {
+
+        EditMessageText messageText = new EditMessageText();
+        messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        messageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        messageText.setText("This message is no longer available :(");
+        messageSender.executeEditMessageText(messageText);
+    }
+
     private void handleCallbackQuery(Update update) throws TelegramApiException {
         String callbackData = update.getCallbackQuery().getData();
         long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -100,9 +110,11 @@ public class TelegramBotService {
         AnswerCallbackQuery answer = new AnswerCallbackQuery();
         if (user == null || user.getLastMessageId() == null || !user.getLastMessageId().equals(messageId)) {
             answer.setCallbackQueryId(update.getCallbackQuery().getId());
-            answer.setText("This message is no longer available :(");
-            answer.setShowAlert(true);
+            answer.setShowAlert(false);
             messageSender.executeCallbackAnswer(answer);
+
+            executeEditMessage(update);
+
             return;
         }
 

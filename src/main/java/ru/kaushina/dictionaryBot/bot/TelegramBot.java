@@ -61,7 +61,12 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
 
     @Override
     public void executeEditMessageText(EditMessageText message) throws TelegramApiException {
-
+        try {
+            execute(message);
+            log.info("message {} edited for user {}: {}", message.getMessageId(), message.getChatId(), message.getText());
+        } catch (TelegramApiException e) {
+            log.error("failed to edit message for user {}: {}", message.getChatId(), e.getMessage());
+        }
     }
 
     @Override
