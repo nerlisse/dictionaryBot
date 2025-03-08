@@ -3,8 +3,10 @@ package ru.kaushina.dictionaryBot.bot;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
+import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.config.BotConfig;
@@ -57,5 +59,15 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     @Override
     public void executeEditMessageText(EditMessageText message) throws TelegramApiException {
 
+    }
+
+    @Override
+    public void executeCallbackAnswer(AnswerCallbackQuery callbackQuery) throws TelegramApiException {
+        try {
+            execute(callbackQuery);
+            log.info("callback query {} answered", callbackQuery.getCallbackQueryId());
+        } catch (TelegramApiException e) {
+            log.error("failed to answer callback query {}: {}", callbackQuery.getCallbackQueryId(), e.getMessage());
+        }
     }
 }

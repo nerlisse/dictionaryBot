@@ -32,6 +32,7 @@ public class UserService {
     public void setUserState(Long chatId, UserState userState) {
         User user = userRepository.findByChatId(chatId);
         if (user != null) {
+            log.info("setting user {} state to {}", chatId, userState);
             user.setUserState(userState);
             userRepository.save(user);
             log.info("User state updated successfully: {} -> {}", chatId, userState);
