@@ -92,16 +92,27 @@ public class TelegramBotService {
     private void handleCallbackQuery(Update update) throws TelegramApiException {
         String callbackData = update.getCallbackQuery().getData();
         long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
 
         log.info("Received callback {} from user {}", callbackData, chatId);
 
-
+        User user = userService.findByChatId(chatId);
+        AnswerCallbackQuery answer = new AnswerCallbackQuery();
+        if (user == null || user.getLastMessageId() == null || !user.getLastMessageId().equals(messageId)) {
+            answer.setCallbackQueryId(update.getCallbackQuery().getId());
+            answer.setText("This message is no longer available :(");
+            answer.setShowAlert(true);
+            messageSender.executeCallbackAnswer(answer);
+            return;
+        }
 
         //answer for callback (for showing callback is answered)
-        AnswerCallbackQuery answer = new AnswerCallbackQuery();
+
         answer.setCallbackQueryId(update.getCallbackQuery().getId());
         answer.setShowAlert(false);
         messageSender.executeCallbackAnswer(answer);
+
+
 
         if (callbackData.equals("HOME")) {
             messageHandler.homeHandler(update);
