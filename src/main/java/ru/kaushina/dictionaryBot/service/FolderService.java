@@ -77,4 +77,8 @@ public class FolderService {
         return null;
 
     }
+
+    public void deleteFolder(Folder folder) {
+        folderRepository.delete(folder);
+    }
 }

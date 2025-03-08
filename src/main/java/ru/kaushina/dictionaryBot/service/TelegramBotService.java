@@ -88,6 +88,13 @@ public class TelegramBotService {
 
         log.info("Received callback '{}' from user {}", callbackData, chatId);
 
+        if (callbackData.equals("HOME")) {
+            messageHandler.homeHandler(update);
+            SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
+            messageSender.executeMessage(sendMessage); //execute the message
+            return;
+        }
+
         if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
             messageHandler.createFolderHandler(update);
             SendMessage sendMessage = messageBuilder.createFolderMessage(update);
@@ -96,12 +103,17 @@ public class TelegramBotService {
         }
 
         if (callbackData.contains("DELETE FOLDER_")) {
-            //delete folder
+            messageHandler.deleteFolderHandler(update);
+            SendMessage sendMessage = messageBuilder.getHomeMessage(update);
+            messageSender.executeMessage(sendMessage);
             return;
         }
 
         if (callbackData.contains("SHOW FOLDER_")) {
-            //show folder menu
+            log.info("");
+            messageHandler.showFolderHandler(update);
+            SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+            messageSender.executeMessage(sendMessage);
             return;
         }
     }

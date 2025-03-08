@@ -1,6 +1,7 @@
 package ru.kaushina.dictionaryBot.handlers;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
@@ -15,6 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @Component
 public class MessageBuilder {
 
@@ -28,7 +30,14 @@ public class MessageBuilder {
 
     public SendMessage getHomeMessage(Update update) {
         SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
+        Long chatId;
+        if (update.hasMessage()) {
+            chatId = update.getMessage().getChatId();
+        }
+        else {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
+
         // set chatid
         message.setChatId(chatId.toString());
 
@@ -41,26 +50,20 @@ public class MessageBuilder {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
 
-        // adding create folder button
-        var button = new InlineKeyboardButton();
-        button.setText("Create new folder");
-        button.setCallbackData("CREATE NEW FOLDER");
-        row.add(button);
-        rowsInline.add(row);
 
         //find all folders of users
         List<Folder> folders = folderService.findByUser_ChatId(chatId);
         //set all of them in inline markup
         for (Folder folder : folders) {
             row = new ArrayList<>();
-            button = new InlineKeyboardButton();
-            String folderName = folder.getName();
-            button.setText("folder: " + folderName);
-            //need to set callbacks later
-            button.setCallbackData("SHOW FOLDER_" + folder.getId());
-            row.add(button);
+            row.add(createButton("folder: " + folder.getName(), "SHOW FOLDER_" + folder.getId()));
             rowsInline.add(row);
         }
+
+        row = new ArrayList<>();
+        // adding create folder button
+        row.add(createButton("Create new folder", "CREATE NEW FOLDER"));
+        rowsInline.add(row);
 
         //set markup for message
         inlineKeyboardMarkup.setKeyboard(rowsInline);
@@ -96,59 +99,53 @@ public class MessageBuilder {
 
     }
 
+    private InlineKeyboardButton createButton(String text, String callbackData) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+        inlineKeyboardButton.setText(text);
+        inlineKeyboardButton.setCallbackData(callbackData);
+        return inlineKeyboardButton;
+    }
+
     //show folder menu
     public SendMessage folderShowMessage(Update update) {
+
+
         SendMessage message = new SendMessage();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         message.setChatId(chatId.toString());
 
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(13));
+        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(12));
+        System.out.println(folderId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
             message.setText("folder with that name does not exist");
             return message;
         }
 
+        log.info("showing folder {} for user {}", folder.get().getName(), chatId);
+
+        message.setText("You are in folder " + folder.get().getName());
+
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+
         List<InlineKeyboardButton> row = new ArrayList<>();
-
         //button for adding a word
-        var button = new InlineKeyboardButton();
-        button.setText("Add word");
-        button.setCallbackData("ADD WORD TO FOLDER_" + folderId);
-        row.add(button);
-
+        row.add(createButton("Add word", "ADD WORD TO FOLDER_" + folderId));
         // button for deleting word
-        button = new InlineKeyboardButton();
-        button.setText("Delete word");
-        button.setCallbackData("DELETE WORD FROM FOLDER_" + folderId);
-        row.add(button);
-
+        row.add(createButton("Delete word", "DELETE WORD FROM FOLDER_" + folderId));
         rowsInline.add(row);
 
         row = new ArrayList<>();
-
         //button for showing all words
-        button = new InlineKeyboardButton();
-        button.setText("Show all words");
-        button.setCallbackData("SHOW WORDS FROM FOLDER_" + folderId);
-        row.add(button);
-
+        row.add(createButton("Show all words", "SHOW WORDS FROM FOLDER_" + folderId));
         // button for deleting the folder
-        button = new InlineKeyboardButton();
-        button.setText("Delete folder");
-        button.setCallbackData("DELETE FOLDER_" + folderId);
-        row.add(button);
-
+        row.add(createButton("Delete folder", "DELETE FOLDER_" + folderId));
         rowsInline.add(row);
-        row = new ArrayList<>();
 
+        row = new ArrayList<>();
         // button for home screen
-        button = new InlineKeyboardButton();
-        button.setText("Go back");
-        button.setCallbackData("HOME");
-        row.add(button);
+        row.add(createButton("Go back", "HOME"));
 
         rowsInline.add(row);
         inlineKeyboardMarkup.setKeyboard(rowsInline);
