@@ -74,7 +74,6 @@ public class MessageHandler {
 
     public void showFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        String folderId = update.getCallbackQuery().getData().toString();
         log.info("Showing folder {} to user {}", update.getCallbackQuery().getData().substring(12) ,chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
     }

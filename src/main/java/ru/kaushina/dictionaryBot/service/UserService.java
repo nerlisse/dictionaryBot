@@ -34,7 +34,6 @@ public class UserService {
         if (user != null) {
             log.info("setting user {} state to {}", chatId, userState);
             user.setUserState(userState);
-            log.info("setstate to {}", userState);
             userRepository.save(user);
             log.info("User state updated successfully: {} -> {}", chatId, userState);
         }
