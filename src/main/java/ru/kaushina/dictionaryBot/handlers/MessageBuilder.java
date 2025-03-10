@@ -154,4 +154,16 @@ public class MessageBuilder {
         return message;
 
     }
+
+    public SendMessage addWordMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        //asking to enter word
+        String text = "enter new word: ";
+        message.setText(text);
+
+        return message;
+    }
+
 }
