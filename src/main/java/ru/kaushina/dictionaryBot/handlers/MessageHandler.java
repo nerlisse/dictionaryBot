@@ -6,7 +6,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
-import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
@@ -93,7 +92,7 @@ public class MessageHandler {
 
     }
 
-    public void addKeywordHandler(Update update) {
+    public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.ADD_KEY);
     }

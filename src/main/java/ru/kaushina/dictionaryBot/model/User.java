@@ -26,5 +26,7 @@ public class User {
     @Enumerated(EnumType.STRING)
     private UserState userState;
 
+    private Long currentFolderId;
+
     private Timestamp registeredAt;
 }

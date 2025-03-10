@@ -88,6 +88,12 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
             return;
         }
+
+        if (user.getUserState().equals(UserState.ADD_KEY)) {
+
+
+
+        }
     }
 
     private void executeEditMessage(Update update) throws TelegramApiException {
@@ -119,7 +125,7 @@ public class TelegramBotService {
         }
 
         //answer for callback (for showing callback is answered)
-
+        //TO_DO: do it after completing action not before
         answer.setCallbackQueryId(update.getCallbackQuery().getId());
         answer.setShowAlert(false);
         messageSender.executeCallbackAnswer(answer);
@@ -149,7 +155,7 @@ public class TelegramBotService {
         }
 
         if (callbackData.contains("SHOW FOLDER_")) {
-            log.info("");
+            //log.info("");
             messageHandler.showFolderHandler(update);
             SendMessage sendMessage = messageBuilder.folderShowMessage(update);
             executeNewMessage(sendMessage);
@@ -157,12 +163,14 @@ public class TelegramBotService {
         }
 
         if (callbackData.contains("ADD WORD TO FOLDER_")) {
-            log.info("");
-            messageHandler.addKeywordHandler(update);
+            //log.info("");
+            messageHandler.askToAddWordHandler(update);
             SendMessage sendMessage = messageBuilder.addWordMessage(update);
             executeNewMessage(sendMessage);
             return;
         }
+
+
     }
 
 }
