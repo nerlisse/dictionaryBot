@@ -31,4 +31,8 @@ public class WordService {
         return wordRepository.save(newWord);
     }
 
+    /*public Word getWord(String word) {
+
+    }*/
+
 }

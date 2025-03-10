@@ -103,7 +103,6 @@ public class MessageHandler {
 
     public void addKeywordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        User user = userService.findByChatId(chatId);
         Long folderId = userService.getCurrentFolderId(chatId);
         folderService.findById(folderId).ifPresentOrElse(
                 folder -> {
@@ -116,5 +115,19 @@ public class MessageHandler {
                     userService.setCurrentFolderId(chatId, null);
                 }
         );
+    }
+
+    public void addValueHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        User user = userService.findByChatId(chatId);
+        String value = update.getMessage().getText();
+
+        Long folderId = userService.getCurrentFolderId(chatId);
+        //Word word = wordService.createWord(value, folderId);
+    }
+
+    public void showWordsHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+
     }
 }
