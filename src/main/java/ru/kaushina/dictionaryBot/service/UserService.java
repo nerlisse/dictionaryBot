@@ -82,4 +82,9 @@ public class UserService {
         user.setCurrentFolderId(folderId);
         userRepository.save(user);
     }
+
+    public Long getCurrentFolderId(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getCurrentFolderId();
+    }
 }

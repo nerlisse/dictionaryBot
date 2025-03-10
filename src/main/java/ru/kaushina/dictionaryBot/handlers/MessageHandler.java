@@ -6,6 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
@@ -98,5 +99,22 @@ public class MessageHandler {
         Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(19));
         userService.setCurrentFolderId(chatId, folderId);
         userService.setUserState(chatId, UserState.ADD_KEY);
+    }
+
+    public void addKeywordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        User user = userService.findByChatId(chatId);
+        Long folderId = userService.getCurrentFolderId(chatId);
+        folderService.findById(folderId).ifPresentOrElse(
+                folder -> {
+                    Word word = wordService.createWord(update.getMessage().getText(), folder);
+                    userService.setUserState(chatId, UserState.ADD_VALUE);
+                },
+                () -> {
+                    log.info("No such folder {} for user {}, returning to main menu", folderId, chatId);
+                    userService.setUserState(chatId, UserState.MAIN_MENU);
+                    userService.setCurrentFolderId(chatId, null);
+                }
+        );
     }
 }
