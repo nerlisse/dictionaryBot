@@ -6,8 +6,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.WordService;
 
 import java.util.Optional;
 
@@ -17,10 +19,12 @@ public class MessageHandler {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final WordService wordService;
 
-    public MessageHandler(UserService userService, FolderService folderService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService) {
         this.userService = userService;
         this.folderService = folderService;
+        this.wordService = wordService;
     }
 
     //pressing start command
@@ -91,10 +95,6 @@ public class MessageHandler {
 
     public void addKeywordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(19));
-        Optional<Folder> folder = folderService.findById(folderId);
-        User user = userService.findByChatId(chatId);
-
-
+        userService.setUserState(chatId, UserState.ADD_KEY);
     }
 }
