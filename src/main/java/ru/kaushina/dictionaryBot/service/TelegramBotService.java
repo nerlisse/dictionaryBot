@@ -92,8 +92,9 @@ public class TelegramBotService {
 
         if (user.getUserState().equals(UserState.ADD_KEY)) {
 
-
-
+            messageHandler.addKeywordHandler(update);
+            SendMessage sendMessage = messageBuilder.addValueMessage(update);
+            executeNewMessage(sendMessage);
 
         }
     }
