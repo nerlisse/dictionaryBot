@@ -88,4 +88,13 @@ public class MessageHandler {
         folder.ifPresent(folderService::deleteFolder);
 
     }
+
+    public void addKeywordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(19));
+        Optional<Folder> folder = folderService.findById(folderId);
+        User user = userService.findByChatId(chatId);
+
+
+    }
 }

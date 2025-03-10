@@ -155,6 +155,11 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
             return;
         }
+
+        if (callbackData.contains("ADD WORD TO FOLDER_")) {
+            log.info("");
+
+        }
     }
 
 }
