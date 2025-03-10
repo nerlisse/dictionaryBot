@@ -76,4 +76,10 @@ public class UserService {
         user.setLastMessageId(messageId);
         userRepository.save(user);
     }
+
+    public void setCurrentFolderId(Long chatId, Long folderId) {
+        User user = userRepository.findByChatId(chatId);
+        user.setCurrentFolderId(folderId);
+        userRepository.save(user);
+    }
 }

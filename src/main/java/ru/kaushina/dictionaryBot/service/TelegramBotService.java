@@ -17,6 +17,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
+import ru.kaushina.dictionaryBot.model.Word;
 
 
 @Slf4j
@@ -90,6 +91,7 @@ public class TelegramBotService {
         }
 
         if (user.getUserState().equals(UserState.ADD_KEY)) {
+
 
 
 

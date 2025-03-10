@@ -92,8 +92,11 @@ public class MessageHandler {
 
     }
 
+    //user asked to add word, can't resist
     public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(19));
+        userService.setCurrentFolderId(chatId, folderId);
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 }
