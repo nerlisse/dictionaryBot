@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.config.BotConfig;
@@ -47,18 +48,25 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
     }
 
     @Override
-    public void executeMessage(SendMessage message) throws TelegramApiException {
+    public Message executeMessage(SendMessage message) throws TelegramApiException {
         try {
-            execute(message);
+            Message sentMessage = execute(message);
             log.info("message sent to user {}: {}", message.getChatId(), message.getText());
+            return sentMessage;
         } catch (TelegramApiException e) {
             log.error("failed to send message to user {}: {}", message.getChatId(), e.getMessage());
         }
+        return null;
     }
 
     @Override
     public void executeEditMessageText(EditMessageText message) throws TelegramApiException {
-
+        try {
+            execute(message);
+            log.info("message {} edited for user {}: {}", message.getMessageId(), message.getChatId(), message.getText());
+        } catch (TelegramApiException e) {
+            log.error("failed to edit message for user {}: {}", message.getChatId(), e.getMessage());
+        }
     }
 
     @Override

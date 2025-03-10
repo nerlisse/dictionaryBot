@@ -71,4 +71,9 @@ public class UserService {
         userRepository.save(user);
     }
 
+    public void setLastMessageId(Long chatId, Integer messageId) {
+        User user = userRepository.findByChatId(chatId);
+        user.setLastMessageId(messageId);
+        userRepository.save(user);
+    }
 }

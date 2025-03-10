@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.handlers.MessageHandler;
@@ -55,6 +57,11 @@ public class TelegramBotService {
         }
     }
 
+    private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
+        Message sentMessage = messageSender.executeMessage(sendMessage);
+        userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
+    }
+
     private void handleTextMessage(Update update) throws TelegramApiException {
         String message = update.getMessage().getText();
         long chatId = update.getMessage().getChatId();
@@ -66,7 +73,7 @@ public class TelegramBotService {
         if (message.equals("/start")) { //start command
             messageHandler.startCommandHandler(update); //handle start command
             SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-            messageSender.executeMessage(sendMessage); //execute the message
+            executeNewMessage(sendMessage); //execute the message
             return;
 
         }
@@ -75,44 +82,69 @@ public class TelegramBotService {
 
             Folder folder = messageHandler.folderCreationHandler(update);
             SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
-            messageSender.executeMessage(sendMessage);
+            executeNewMessage(sendMessage);
 
             sendMessage = messageBuilder.getHomeMessage(update); //send home message
-            messageSender.executeMessage(sendMessage);
+            executeNewMessage(sendMessage);
             return;
         }
+    }
+
+    private void executeEditMessage(Update update) throws TelegramApiException {
+
+        EditMessageText messageText = new EditMessageText();
+        messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
+        messageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        messageText.setText("This message is no longer available :(");
+        messageSender.executeEditMessageText(messageText);
     }
 
     private void handleCallbackQuery(Update update) throws TelegramApiException {
         String callbackData = update.getCallbackQuery().getData();
         long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Integer messageId = update.getCallbackQuery().getMessage().getMessageId();
 
-        log.info("Received callback '{}' from user {}", callbackData, chatId);
+        log.info("Received callback {} from user {}", callbackData, chatId);
+
+        User user = userService.findByChatId(chatId);
+        AnswerCallbackQuery answer = new AnswerCallbackQuery();
+        if (user == null || user.getLastMessageId() == null || !user.getLastMessageId().equals(messageId)) {
+            answer.setCallbackQueryId(update.getCallbackQuery().getId());
+            answer.setShowAlert(false);
+            messageSender.executeCallbackAnswer(answer);
+
+            executeEditMessage(update);
+
+            return;
+        }
 
         //answer for callback (for showing callback is answered)
-        AnswerCallbackQuery answer = new AnswerCallbackQuery();
+
         answer.setCallbackQueryId(update.getCallbackQuery().getId());
         answer.setShowAlert(false);
         messageSender.executeCallbackAnswer(answer);
 
+
+
         if (callbackData.equals("HOME")) {
             messageHandler.homeHandler(update);
             SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-            messageSender.executeMessage(sendMessage); //execute the message
+
+            executeNewMessage(sendMessage); //execute the message
             return;
         }
 
         if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
             messageHandler.createFolderHandler(update);
             SendMessage sendMessage = messageBuilder.createFolderMessage(update);
-            messageSender.executeMessage(sendMessage);
+            executeNewMessage(sendMessage);
             return;
         }
 
         if (callbackData.contains("DELETE FOLDER_")) {
             messageHandler.deleteFolderHandler(update);
             SendMessage sendMessage = messageBuilder.getHomeMessage(update);
-            messageSender.executeMessage(sendMessage);
+            executeNewMessage(sendMessage);
             return;
         }
 
@@ -120,7 +152,7 @@ public class TelegramBotService {
             log.info("");
             messageHandler.showFolderHandler(update);
             SendMessage sendMessage = messageBuilder.folderShowMessage(update);
-            messageSender.executeMessage(sendMessage);
+            executeNewMessage(sendMessage);
             return;
         }
     }
