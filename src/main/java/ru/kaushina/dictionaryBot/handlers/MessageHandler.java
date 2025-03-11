@@ -80,6 +80,7 @@ public class MessageHandler {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         log.info("Showing folder {} to user {}", update.getCallbackQuery().getData().substring(12) ,chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        userService.setCurrentFolderId(chatId, Long.valueOf(update.getCallbackQuery().getData().substring(12)));
     }
 
 
@@ -128,6 +129,6 @@ public class MessageHandler {
 
     public void showWordsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-
+        log.info("Showing words from folder {} to user {}", update.getCallbackQuery().getData().substring(23) ,chatId);
     }
 }

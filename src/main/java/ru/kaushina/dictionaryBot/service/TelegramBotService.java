@@ -173,6 +173,14 @@ public class TelegramBotService {
             return;
         }
 
+        if (callbackData.contains("SHOW WORDS FROM FOLDER_")) {
+            messageHandler.showWordsHandler(update);
+            SendMessage sendMessage = messageBuilder.showWordsMessage(update);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update); //send home message
+            executeNewMessage(sendMessage);
+        }
 
     }
 

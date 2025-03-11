@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 
@@ -113,8 +114,13 @@ public class MessageBuilder {
         SendMessage message = new SendMessage();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         message.setChatId(chatId.toString());
-
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(12));
+        Long folderId;
+        String callbackData = update.getCallbackQuery().getData();
+        if (callbackData.contains("WORDS")) {
+            folderId = Long.valueOf(callbackData.substring(23));
+        }
+        else
+            folderId = Long.valueOf(callbackData.substring(12));
         System.out.println(folderId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
@@ -177,4 +183,24 @@ public class MessageBuilder {
         return message;
     }
 
+    public SendMessage showWordsMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        StringBuilder text = new StringBuilder();
+        text.append("Here are your words:\n\n");
+
+        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(23));
+        List<Word> words = folderService.getFolderWords(folderId);
+        int i = 1;
+        for (Word word : words) {
+            text.append(i).append(") ");
+            text.append(word.getWordKey()).append(":\n");
+            text.append(word.getWordValue()).append("\n");
+            i++;
+        }
+        message.setText(text.toString());
+
+        return message;
+    }
 }
