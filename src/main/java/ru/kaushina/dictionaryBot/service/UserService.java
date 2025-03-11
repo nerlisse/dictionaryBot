@@ -76,4 +76,26 @@ public class UserService {
         user.setLastMessageId(messageId);
         userRepository.save(user);
     }
+
+    public void setCurrentFolderId(Long chatId, Long folderId) {
+        User user = userRepository.findByChatId(chatId);
+        user.setCurrentFolderId(folderId);
+        userRepository.save(user);
+    }
+
+    public Long getCurrentFolderId(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getCurrentFolderId();
+    }
+
+    public void setCurrentWordKey(Long chatId, String wordKey) {
+        User user = userRepository.findByChatId(chatId);
+        user.setCurrentWordKey(wordKey);
+        userRepository.save(user);
+    }
+
+    public String getCurrentWordKey(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getCurrentWordKey();
+    }
 }

@@ -1,9 +1,6 @@
 package ru.kaushina.dictionaryBot.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +22,11 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private UserState userState;
+
+    private Long currentFolderId;
+
+    @Column(length=1000)
+    private String currentWordKey;
 
     private Timestamp registeredAt;
 }

@@ -6,8 +6,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.WordService;
 
 import java.util.Optional;
 
@@ -17,16 +19,21 @@ public class MessageHandler {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final WordService wordService;
 
-    public MessageHandler(UserService userService, FolderService folderService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService) {
         this.userService = userService;
         this.folderService = folderService;
+        this.wordService = wordService;
     }
 
     //pressing start command
     public void startCommandHandler(Update update) {
         userService.registerUser(update);
-        userService.setUserState(update.getMessage().getChatId(), UserState.MAIN_MENU);
+        Long chatId = update.getMessage().getChatId();
+        userService.setUserState(chatId, UserState.MAIN_MENU);
+        userService.setCurrentFolderId(chatId, null);
+        userService.setCurrentWordKey(chatId, null);
     }
 
     public void homeHandler(Update update) {
@@ -38,6 +45,8 @@ public class MessageHandler {
             chatId = update.getCallbackQuery().getMessage().getChatId();
         }
         userService.setUserState(chatId, UserState.MAIN_MENU);
+        userService.setCurrentFolderId(chatId, null);
+        userService.setCurrentWordKey(chatId, null);
     }
 
     //pressing create folder
@@ -65,7 +74,6 @@ public class MessageHandler {
             log.warn("folder {} was not created for user {}", folderName, chatId);
         }
 
-        User user = userService.findByChatId(chatId);
         userService.setUserState(chatId, UserState.MAIN_MENU);
 
 
@@ -76,16 +84,71 @@ public class MessageHandler {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         log.info("Showing folder {} to user {}", update.getCallbackQuery().getData().substring(12) ,chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        userService.setCurrentFolderId(chatId, Long.valueOf(update.getCallbackQuery().getData().substring(12)));
     }
 
 
     public void deleteFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(14));
+        Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         User user = userService.findByChatId(chatId);
         userService.setUserState(chatId, UserState.MAIN_MENU);
         folder.ifPresent(folderService::deleteFolder);
+        userService.setCurrentFolderId(chatId, null);
+    }
 
+    //user asked to add word, can't resist
+    public void askToAddWordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        userService.setCurrentFolderId(chatId, folderId);
+        userService.setUserState(chatId, UserState.ADD_KEY);
+    }
+
+    public void addKeywordHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        User user = userService.findByChatId(chatId);
+        String key = update.getMessage().getText();
+        userService.setCurrentWordKey(chatId, key);
+        userService.setUserState(chatId, UserState.ADD_VALUE);
+    }
+
+    public Word addValueHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        String value = update.getMessage().getText();
+        String key = userService.getCurrentWordKey(chatId);
+        Long folderId = userService.getCurrentFolderId(chatId);
+        Word word = wordService.createWord(key, value, folderId);
+
+        if (word != null) {
+            log.info("word {} successfully created for user {}", key, chatId);
+        }
+        else {
+            log.warn("word {} was not created for user {}", key, chatId);
+        }
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        userService.setCurrentWordKey(chatId, null);
+        return word;
+    }
+
+    public void showWordsHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        log.info("Showing words from folder {} to user {}", userService.getCurrentFolderId(chatId) ,chatId);
+    }
+
+    public void askToDeleteWordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.DELETE_WORD);
+    }
+
+    public boolean deleteWordHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        String word = update.getMessage().getText();
+        boolean deleted = wordService.deleteWord(word, folderId);
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        return deleted;
     }
 }

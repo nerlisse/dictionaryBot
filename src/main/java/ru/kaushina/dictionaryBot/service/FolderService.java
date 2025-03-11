@@ -1,10 +1,13 @@
 package ru.kaushina.dictionaryBot.service;
 
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
 
 import java.util.ArrayList;
@@ -80,5 +83,11 @@ public class FolderService {
 
     public void deleteFolder(Folder folder) {
         folderRepository.delete(folder);
+    }
+
+    @Transactional
+    public List<Word> getFolderWords(Long folderId) {
+        Folder folder = folderRepository.findById(folderId).orElse(null);
+        return new ArrayList<>(folder.getWords());
     }
 }

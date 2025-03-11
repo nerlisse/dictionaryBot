@@ -17,6 +17,7 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
+import ru.kaushina.dictionaryBot.model.Word;
 
 
 @Slf4j
@@ -88,6 +89,34 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
             return;
         }
+
+        if (user.getUserState().equals(UserState.ADD_KEY)) {
+
+            messageHandler.addKeywordHandler(update);
+            SendMessage sendMessage = messageBuilder.addValueMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
+
+        if (user.getUserState().equals(UserState.ADD_VALUE)) {
+            Word word = messageHandler.addValueHandler(update);
+            SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
+
+        if (user.getUserState().equals(UserState.DELETE_WORD)) {
+            boolean deleted = messageHandler.deleteWordHandler(update);
+            SendMessage sendMessage = messageBuilder.WordDeletedMessage(update, deleted);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
     }
 
     private void executeEditMessage(Update update) throws TelegramApiException {
@@ -119,7 +148,7 @@ public class TelegramBotService {
         }
 
         //answer for callback (for showing callback is answered)
-
+        //TO_DO: do it after completing action not before
         answer.setCallbackQueryId(update.getCallbackQuery().getId());
         answer.setShowAlert(false);
         messageSender.executeCallbackAnswer(answer);
@@ -141,7 +170,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("DELETE FOLDER_")) {
+        if (callbackData.equals("DELETE FOLDER")) {
             messageHandler.deleteFolderHandler(update);
             SendMessage sendMessage = messageBuilder.getHomeMessage(update);
             executeNewMessage(sendMessage);
@@ -149,12 +178,37 @@ public class TelegramBotService {
         }
 
         if (callbackData.contains("SHOW FOLDER_")) {
-            log.info("");
+            //log.info("");
             messageHandler.showFolderHandler(update);
             SendMessage sendMessage = messageBuilder.folderShowMessage(update);
             executeNewMessage(sendMessage);
             return;
         }
+
+        if (callbackData.contains("ADD WORD")) {
+            //log.info("");
+            messageHandler.askToAddWordHandler(update);
+            SendMessage sendMessage = messageBuilder.addWordMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
+
+        if (callbackData.contains("SHOW WORDS")) {
+            messageHandler.showWordsHandler(update);
+            SendMessage sendMessage = messageBuilder.showWordsMessage(update);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update); //send home message
+            executeNewMessage(sendMessage);
+        }
+
+        if (callbackData.contains("DELETE WORD")) {
+            messageHandler.askToDeleteWordHandler(update);
+            SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
+
     }
 
 }

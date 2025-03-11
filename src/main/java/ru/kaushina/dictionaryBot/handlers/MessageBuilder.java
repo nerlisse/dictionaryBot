@@ -8,7 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 
@@ -22,10 +22,12 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final MessageHandler messageHandler;
 
-    public MessageBuilder(UserService userService, FolderService folderService) {
+    public MessageBuilder(UserService userService, FolderService folderService, MessageHandler messageHandler) {
         this.userService = userService;
         this.folderService = folderService;
+        this.messageHandler = messageHandler;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -48,7 +50,7 @@ public class MessageBuilder {
         //set inline markup
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> row = new ArrayList<>();
+        List<InlineKeyboardButton> row;
 
 
         //find all folders of users
@@ -111,11 +113,16 @@ public class MessageBuilder {
 
 
         SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long chatId;
+        if (update.hasMessage()) {
+            chatId = update.getMessage().getChatId();
+        }
+        else {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
         message.setChatId(chatId.toString());
 
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(12));
-        System.out.println(folderId);
+        Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
             message.setText("folder with that name does not exist");
@@ -131,16 +138,16 @@ public class MessageBuilder {
 
         List<InlineKeyboardButton> row = new ArrayList<>();
         //button for adding a word
-        row.add(createButton("Add word", "ADD WORD TO FOLDER_" + folderId));
+        row.add(createButton("Add word", "ADD WORD" + folderId));
         // button for deleting word
-        row.add(createButton("Delete word", "DELETE WORD FROM FOLDER_" + folderId));
+        row.add(createButton("Delete word", "DELETE WORD" + folderId));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         //button for showing all words
-        row.add(createButton("Show all words", "SHOW WORDS FROM FOLDER_" + folderId));
+        row.add(createButton("Show all words", "SHOW WORDS" + folderId));
         // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER_" + folderId));
+        row.add(createButton("Delete folder", "DELETE FOLDER" + folderId));
         rowsInline.add(row);
 
         row = new ArrayList<>();
@@ -153,5 +160,85 @@ public class MessageBuilder {
 
         return message;
 
+    }
+
+    public SendMessage addWordMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        //asking to enter word
+        String text = "enter new word: ";
+        message.setText(text);
+
+        return message;
+    }
+
+    public SendMessage addValueMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        //asking to enter word
+        String text = "enter value: ";
+        message.setText(text);
+
+        return message;
+    }
+
+    public SendMessage showWordsMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        StringBuilder text = new StringBuilder();
+        text.append("Here are your words:\n\n");
+
+        Long folderId = userService.getCurrentFolderId(chatId);
+        List<Word> words = folderService.getFolderWords(folderId);
+        int i = 1;
+        for (Word word : words) {
+            text.append(i).append(") ");
+            text.append(word.getWordKey()).append(":\n");
+            text.append(word.getWordValue()).append("\n");
+            i++;
+        }
+        message.setText(text.toString());
+
+        return message;
+    }
+
+    public SendMessage WordCreatedMessage(Update update, Word word) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        if (word != null) {
+            sendMessage.setText("Word created");
+        }
+        else {
+            sendMessage.setText("Couldn't create word. Perhaps, entered key already exists in this folder or you" +
+                    "entered empty values :(");
+        }
+        return sendMessage;
+    }
+
+    public SendMessage deleteWordMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        message.setText("Enter the word to delete");
+        return message;
+    }
+
+    public SendMessage WordDeletedMessage(Update update, boolean deleted) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        if (deleted) {
+            message.setText("Word deleted");
+        }
+        else {
+            message.setText("Couldn't delete word: no such key");
+        }
+        return message;
     }
 }
