@@ -8,7 +8,6 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -23,10 +22,12 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final MessageHandler messageHandler;
 
-    public MessageBuilder(UserService userService, FolderService folderService) {
+    public MessageBuilder(UserService userService, FolderService folderService, MessageHandler messageHandler) {
         this.userService = userService;
         this.folderService = folderService;
+        this.messageHandler = messageHandler;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -49,7 +50,7 @@ public class MessageBuilder {
         //set inline markup
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
-        List<InlineKeyboardButton> row = new ArrayList<>();
+        List<InlineKeyboardButton> row;
 
 
         //find all folders of users
@@ -112,16 +113,24 @@ public class MessageBuilder {
 
 
         SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
+        Long chatId;
         Long folderId;
-        String callbackData = update.getCallbackQuery().getData();
-        if (callbackData.contains("WORDS")) {
-            folderId = Long.valueOf(callbackData.substring(23));
+        if (update.hasMessage()) {
+            chatId = update.getMessage().getChatId();
+            folderId = userService.getCurrentFolderId(chatId);
         }
-        else
-            folderId = Long.valueOf(callbackData.substring(12));
-        System.out.println(folderId);
+        else {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+            String callbackData = update.getCallbackQuery().getData();
+            if (callbackData.contains("WORDS")) {
+                folderId = Long.valueOf(callbackData.substring(23));
+            }
+            else
+                folderId = Long.valueOf(callbackData.substring(12));
+        }
+        message.setChatId(chatId.toString());
+
+        //System.out.println(folderId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
             message.setText("folder with that name does not exist");
@@ -174,7 +183,7 @@ public class MessageBuilder {
 
     public SendMessage addValueMessage(Update update) {
         SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long chatId = update.getMessage().getChatId();
         message.setChatId(chatId.toString());
         //asking to enter word
         String text = "enter value: ";
@@ -202,5 +211,20 @@ public class MessageBuilder {
         message.setText(text.toString());
 
         return message;
+    }
+
+    public SendMessage WordCreatedMessage(Update update, Word word) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        if (word != null) {
+            sendMessage.setText("Word created");
+        }
+        else {
+            sendMessage.setText("Couldn't create word. Perhaps, entered key already exists in this folder or you" +
+                    "entered empty values :(");
+        }
+        return sendMessage;
     }
 }

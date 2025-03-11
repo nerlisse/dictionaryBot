@@ -95,7 +95,17 @@ public class TelegramBotService {
             messageHandler.addKeywordHandler(update);
             SendMessage sendMessage = messageBuilder.addValueMessage(update);
             executeNewMessage(sendMessage);
+            return;
+        }
 
+        if (user.getUserState().equals(UserState.ADD_VALUE)) {
+            Word word = messageHandler.addValueHandler(update);
+            SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update);
+            executeNewMessage(sendMessage);
+            return;
         }
     }
 

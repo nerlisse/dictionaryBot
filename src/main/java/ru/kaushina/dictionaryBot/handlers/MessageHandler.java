@@ -30,7 +30,10 @@ public class MessageHandler {
     //pressing start command
     public void startCommandHandler(Update update) {
         userService.registerUser(update);
-        userService.setUserState(update.getMessage().getChatId(), UserState.MAIN_MENU);
+        Long chatId = update.getMessage().getChatId();
+        userService.setUserState(chatId, UserState.MAIN_MENU);
+        userService.setCurrentFolderId(chatId, null);
+        userService.setCurrentWordKey(chatId, null);
     }
 
     public void homeHandler(Update update) {
@@ -42,6 +45,8 @@ public class MessageHandler {
             chatId = update.getCallbackQuery().getMessage().getChatId();
         }
         userService.setUserState(chatId, UserState.MAIN_MENU);
+        userService.setCurrentFolderId(chatId, null);
+        userService.setCurrentWordKey(chatId, null);
     }
 
     //pressing create folder
@@ -69,7 +74,6 @@ public class MessageHandler {
             log.warn("folder {} was not created for user {}", folderName, chatId);
         }
 
-        User user = userService.findByChatId(chatId);
         userService.setUserState(chatId, UserState.MAIN_MENU);
 
 
@@ -91,7 +95,7 @@ public class MessageHandler {
         User user = userService.findByChatId(chatId);
         userService.setUserState(chatId, UserState.MAIN_MENU);
         folder.ifPresent(folderService::deleteFolder);
-
+        userService.setCurrentFolderId(chatId, null);
     }
 
     //user asked to add word, can't resist
@@ -103,28 +107,30 @@ public class MessageHandler {
     }
 
     public void addKeywordHandler(Update update) {
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long chatId = update.getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
-        folderService.findById(folderId).ifPresentOrElse(
-                folder -> {
-                    Word word = wordService.createWord(update.getMessage().getText(), folder);
-                    userService.setUserState(chatId, UserState.ADD_VALUE);
-                },
-                () -> {
-                    log.info("No such folder {} for user {}, returning to main menu", folderId, chatId);
-                    userService.setUserState(chatId, UserState.MAIN_MENU);
-                    userService.setCurrentFolderId(chatId, null);
-                }
-        );
+        User user = userService.findByChatId(chatId);
+        String key = update.getMessage().getText();
+        userService.setCurrentWordKey(chatId, key);
+        userService.setUserState(chatId, UserState.ADD_VALUE);
     }
 
-    public void addValueHandler(Update update) {
+    public Word addValueHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
-        User user = userService.findByChatId(chatId);
         String value = update.getMessage().getText();
-
+        String key = userService.getCurrentWordKey(chatId);
         Long folderId = userService.getCurrentFolderId(chatId);
-        //Word word = wordService.createWord(value, folderId);
+        Word word = wordService.createWord(key, value, folderId);
+
+        if (word != null) {
+            log.info("word {} successfully created for user {}", key, chatId);
+        }
+        else {
+            log.warn("word {} was not created for user {}", key, chatId);
+        }
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        userService.setCurrentWordKey(chatId, null);
+        return word;
     }
 
     public void showWordsHandler(Update update) {
