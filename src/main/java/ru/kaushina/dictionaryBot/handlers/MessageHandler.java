@@ -90,7 +90,7 @@ public class MessageHandler {
 
     public void deleteFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(14));
+        Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         User user = userService.findByChatId(chatId);
         userService.setUserState(chatId, UserState.MAIN_MENU);
@@ -101,7 +101,7 @@ public class MessageHandler {
     //user asked to add word, can't resist
     public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(19));
+        Long folderId = userService.getCurrentFolderId(chatId);
         userService.setCurrentFolderId(chatId, folderId);
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
@@ -135,7 +135,7 @@ public class MessageHandler {
 
     public void showWordsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        log.info("Showing words from folder {} to user {}", update.getCallbackQuery().getData().substring(23) ,chatId);
+        log.info("Showing words from folder {} to user {}", userService.getCurrentFolderId(chatId) ,chatId);
     }
 
     public void askToDeleteWordHandler(Update update) {

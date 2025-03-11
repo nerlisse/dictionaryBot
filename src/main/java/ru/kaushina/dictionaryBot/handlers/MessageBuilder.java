@@ -114,23 +114,15 @@ public class MessageBuilder {
 
         SendMessage message = new SendMessage();
         Long chatId;
-        Long folderId;
         if (update.hasMessage()) {
             chatId = update.getMessage().getChatId();
-            folderId = userService.getCurrentFolderId(chatId);
         }
         else {
             chatId = update.getCallbackQuery().getMessage().getChatId();
-            String callbackData = update.getCallbackQuery().getData();
-            if (callbackData.contains("WORDS")) {
-                folderId = Long.valueOf(callbackData.substring(23));
-            }
-            else
-                folderId = Long.valueOf(callbackData.substring(12));
         }
         message.setChatId(chatId.toString());
 
-        //System.out.println(folderId);
+        Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
             message.setText("folder with that name does not exist");
@@ -146,16 +138,16 @@ public class MessageBuilder {
 
         List<InlineKeyboardButton> row = new ArrayList<>();
         //button for adding a word
-        row.add(createButton("Add word", "ADD WORD TO FOLDER_" + folderId));
+        row.add(createButton("Add word", "ADD WORD" + folderId));
         // button for deleting word
-        row.add(createButton("Delete word", "DELETE WORD FROM FOLDER_" + folderId));
+        row.add(createButton("Delete word", "DELETE WORD" + folderId));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         //button for showing all words
-        row.add(createButton("Show all words", "SHOW WORDS FROM FOLDER_" + folderId));
+        row.add(createButton("Show all words", "SHOW WORDS" + folderId));
         // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER_" + folderId));
+        row.add(createButton("Delete folder", "DELETE FOLDER" + folderId));
         rowsInline.add(row);
 
         row = new ArrayList<>();
@@ -199,7 +191,7 @@ public class MessageBuilder {
         StringBuilder text = new StringBuilder();
         text.append("Here are your words:\n\n");
 
-        Long folderId = Long.valueOf(update.getCallbackQuery().getData().substring(23));
+        Long folderId = userService.getCurrentFolderId(chatId);
         List<Word> words = folderService.getFolderWords(folderId);
         int i = 1;
         for (Word word : words) {

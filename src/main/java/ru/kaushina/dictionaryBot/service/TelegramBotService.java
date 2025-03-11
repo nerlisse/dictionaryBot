@@ -170,7 +170,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("DELETE FOLDER_")) {
+        if (callbackData.equals("DELETE FOLDER")) {
             messageHandler.deleteFolderHandler(update);
             SendMessage sendMessage = messageBuilder.getHomeMessage(update);
             executeNewMessage(sendMessage);
@@ -185,7 +185,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("ADD WORD TO FOLDER_")) {
+        if (callbackData.contains("ADD WORD")) {
             //log.info("");
             messageHandler.askToAddWordHandler(update);
             SendMessage sendMessage = messageBuilder.addWordMessage(update);
@@ -193,7 +193,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("SHOW WORDS FROM FOLDER_")) {
+        if (callbackData.contains("SHOW WORDS")) {
             messageHandler.showWordsHandler(update);
             SendMessage sendMessage = messageBuilder.showWordsMessage(update);
             executeNewMessage(sendMessage);
@@ -202,7 +202,7 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
         }
 
-        if (callbackData.contains("DELETE WORD FROM FOLDER_")) {
+        if (callbackData.contains("DELETE WORD")) {
             messageHandler.askToDeleteWordHandler(update);
             SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
             executeNewMessage(sendMessage);
