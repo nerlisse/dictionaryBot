@@ -107,6 +107,16 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
             return;
         }
+
+        if (user.getUserState().equals(UserState.DELETE_WORD)) {
+            boolean deleted = messageHandler.deleteWordHandler(update);
+            SendMessage sendMessage = messageBuilder.WordDeletedMessage(update, deleted);
+            executeNewMessage(sendMessage);
+
+            sendMessage = messageBuilder.folderShowMessage(update);
+            executeNewMessage(sendMessage);
+            return;
+        }
     }
 
     private void executeEditMessage(Update update) throws TelegramApiException {
@@ -190,6 +200,13 @@ public class TelegramBotService {
 
             sendMessage = messageBuilder.folderShowMessage(update); //send home message
             executeNewMessage(sendMessage);
+        }
+
+        if (callbackData.contains("DELETE WORD FROM FOLDER_")) {
+            messageHandler.askToDeleteWordHandler(update);
+            SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
+            executeNewMessage(sendMessage);
+            return;
         }
 
     }

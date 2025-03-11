@@ -2,6 +2,7 @@ package ru.kaushina.dictionaryBot.service;
 
 
 import org.springframework.stereotype.Service;
+import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.repository.WordRepository;
 
@@ -31,6 +32,15 @@ public class WordService {
         newWord.setFolder(folderService.findById(folderId).orElse(null));
 
         return wordRepository.save(newWord);
+    }
+
+    public boolean deleteWord(String wordKey, Long folderId) {
+        Word word = wordRepository.findByWordKeyAndFolderId(wordKey, folderId);
+        if (word == null) {
+            return false;
+        }
+        wordRepository.delete(word);
+        return true;
     }
 
 }

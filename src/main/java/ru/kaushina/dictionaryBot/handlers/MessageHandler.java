@@ -137,4 +137,18 @@ public class MessageHandler {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         log.info("Showing words from folder {} to user {}", update.getCallbackQuery().getData().substring(23) ,chatId);
     }
+
+    public void askToDeleteWordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.DELETE_WORD);
+    }
+
+    public boolean deleteWordHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        String word = update.getMessage().getText();
+        boolean deleted = wordService.deleteWord(word, folderId);
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        return deleted;
+    }
 }

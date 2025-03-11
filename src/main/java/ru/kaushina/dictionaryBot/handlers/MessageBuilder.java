@@ -227,4 +227,26 @@ public class MessageBuilder {
         }
         return sendMessage;
     }
+
+    public SendMessage deleteWordMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        message.setText("Enter the word to delete");
+        return message;
+    }
+
+    public SendMessage WordDeletedMessage(Update update, boolean deleted) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        if (deleted) {
+            message.setText("Word deleted");
+        }
+        else {
+            message.setText("Couldn't delete word: no such key");
+        }
+        return message;
+    }
 }
