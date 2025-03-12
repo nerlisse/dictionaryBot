@@ -19,6 +19,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
 import ru.kaushina.dictionaryBot.model.Word;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+
 
 @Slf4j
 @Service
@@ -38,10 +42,23 @@ public class TelegramBotService {
 
     private final BotConfig config;
 
+    private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
+    private final Map<String, CheckedConsumer<Update>> callbackHandlers;
+
 
     public TelegramBotService(BotConfig config) {
         this.messageSender = null;
         this.config = config;
+
+        this.stateHandlers = new HashMap<>();
+
+        stateHandlers.put(UserState.CREATE_FOLDER, this::createFolderHandler);
+        stateHandlers.put(UserState.ADD_KEY, this::addKeyHandler);
+        stateHandlers.put(UserState.ADD_VALUE, this::addValueHandler);
+        stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
+
+        this.callbackHandlers = new HashMap<>();
+
     }
 
     // обработка обновлений
@@ -76,48 +93,49 @@ public class TelegramBotService {
             SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
             executeNewMessage(sendMessage); //execute the message
             return;
-
         }
 
-        if (user.getUserState().equals(UserState.CREATE_FOLDER)) { // user entered new folder name
-
-            Folder folder = messageHandler.folderCreationHandler(update);
-            SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
-            executeNewMessage(sendMessage);
-
-            sendMessage = messageBuilder.getHomeMessage(update); //send home message
-            executeNewMessage(sendMessage);
-            return;
-        }
-
-        if (user.getUserState().equals(UserState.ADD_KEY)) {
-
-            messageHandler.addKeywordHandler(update);
-            SendMessage sendMessage = messageBuilder.addValueMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
-
-        if (user.getUserState().equals(UserState.ADD_VALUE)) {
-            Word word = messageHandler.addValueHandler(update);
-            SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
-            executeNewMessage(sendMessage);
-
-            sendMessage = messageBuilder.folderShowMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
-
-        if (user.getUserState().equals(UserState.DELETE_WORD)) {
-            boolean deleted = messageHandler.deleteWordHandler(update);
-            SendMessage sendMessage = messageBuilder.WordDeletedMessage(update, deleted);
-            executeNewMessage(sendMessage);
-
-            sendMessage = messageBuilder.folderShowMessage(update);
-            executeNewMessage(sendMessage);
-            return;
+        CheckedConsumer<Update> handler = stateHandlers.get(user.getUserState());
+        if (handler != null) {
+            handler.accept(update);
+        } else {
+            log.warn("No handler found for user state: {}", user.getUserState());
         }
     }
+
+    private void createFolderHandler(Update update) throws TelegramApiException {
+        Folder folder = messageHandler.folderCreationHandler(update);
+        SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
+        executeNewMessage(sendMessage);
+
+        sendMessage = messageBuilder.getHomeMessage(update); //send home message
+        executeNewMessage(sendMessage);
+    }
+
+    private void addKeyHandler(Update update) throws TelegramApiException {
+        messageHandler.addKeywordHandler(update);
+        SendMessage sendMessage = messageBuilder.addValueMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
+    private void addValueHandler(Update update) throws TelegramApiException {
+        Word word = messageHandler.addValueHandler(update);
+        SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
+        executeNewMessage(sendMessage);
+
+        sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
+    private void deleteWordHandler(Update update) throws TelegramApiException {
+        boolean deleted = messageHandler.deleteWordHandler(update);
+        SendMessage sendMessage = messageBuilder.WordDeletedMessage(update, deleted);
+        executeNewMessage(sendMessage);
+
+        sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
 
     private void executeEditMessage(Update update) throws TelegramApiException {
 
@@ -185,7 +203,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("ADD WORD")) {
+        if (callbackData.equals("ADD WORD")) {
             //log.info("");
             messageHandler.askToAddWordHandler(update);
             SendMessage sendMessage = messageBuilder.addWordMessage(update);
@@ -193,7 +211,7 @@ public class TelegramBotService {
             return;
         }
 
-        if (callbackData.contains("SHOW WORDS")) {
+        if (callbackData.equals("SHOW WORDS")) {
             messageHandler.showWordsHandler(update);
             SendMessage sendMessage = messageBuilder.showWordsMessage(update);
             executeNewMessage(sendMessage);
@@ -202,7 +220,7 @@ public class TelegramBotService {
             executeNewMessage(sendMessage);
         }
 
-        if (callbackData.contains("DELETE WORD")) {
+        if (callbackData.equals("DELETE WORD")) {
             messageHandler.askToDeleteWordHandler(update);
             SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
             executeNewMessage(sendMessage);
