@@ -22,12 +22,10 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
-    private final MessageHandler messageHandler;
 
-    public MessageBuilder(UserService userService, FolderService folderService, MessageHandler messageHandler) {
+    public MessageBuilder(UserService userService, FolderService folderService) {
         this.userService = userService;
         this.folderService = folderService;
-        this.messageHandler = messageHandler;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -93,7 +91,7 @@ public class MessageBuilder {
         message.setChatId(chatId.toString());
 
         if (folder == null) {
-            message.setText("folder with that name already exists, how could you forget?");
+            message.setText("folder was not created. Make sure you entered valid name, not empty, too long or already existing");
         } else {
             message.setText("Folder " + folder.getName() + " created");
         }
@@ -138,16 +136,16 @@ public class MessageBuilder {
 
         List<InlineKeyboardButton> row = new ArrayList<>();
         //button for adding a word
-        row.add(createButton("Add word", "ADD WORD" + folderId));
+        row.add(createButton("Add word", "ADD WORD"));
         // button for deleting word
-        row.add(createButton("Delete word", "DELETE WORD" + folderId));
+        row.add(createButton("Delete word", "DELETE WORD"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         //button for showing all words
-        row.add(createButton("Show all words", "SHOW WORDS" + folderId));
+        row.add(createButton("Show all words", "SHOW WORDS"));
         // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER" + folderId));
+        row.add(createButton("Delete folder", "DELETE FOLDER"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
@@ -170,6 +168,15 @@ public class MessageBuilder {
         String text = "enter new word: ";
         message.setText(text);
 
+        return message;
+    }
+
+    public SendMessage failedToAddWordMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        String text = "failed to add word, too long. Enter valid name: ";
+        message.setText(text);
         return message;
     }
 

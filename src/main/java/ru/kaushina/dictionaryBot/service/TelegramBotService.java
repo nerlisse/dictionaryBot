@@ -21,7 +21,6 @@ import ru.kaushina.dictionaryBot.model.Word;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Consumer;
 
 
 @Slf4j
@@ -58,7 +57,13 @@ public class TelegramBotService {
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
 
         this.callbackHandlers = new HashMap<>();
-
+        callbackHandlers.put("HOME", this::homeCallbackHandler);
+        callbackHandlers.put("CREATE NEW FOLDER", this::createFolderCallbackHandler);
+        callbackHandlers.put("DELETE FOLDER", this::deleteFolderCallbackHandler);
+        callbackHandlers.put("SHOW FOLDER", this::showFolderCallbackHandler);
+        callbackHandlers.put("ADD WORD", this::addWordCallbackHandler);
+        callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
+        callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
     }
 
     // обработка обновлений
@@ -113,8 +118,13 @@ public class TelegramBotService {
     }
 
     private void addKeyHandler(Update update) throws TelegramApiException {
-        messageHandler.addKeywordHandler(update);
-        SendMessage sendMessage = messageBuilder.addValueMessage(update);
+        boolean created = messageHandler.addKeywordHandler(update);
+        SendMessage sendMessage;
+        if (created) {
+            sendMessage = messageBuilder.addValueMessage(update);
+        }
+        else
+            sendMessage = messageBuilder.failedToAddWordMessage(update);
         executeNewMessage(sendMessage);
     }
 
@@ -171,62 +181,64 @@ public class TelegramBotService {
         answer.setShowAlert(false);
         messageSender.executeCallbackAnswer(answer);
 
+        String callback = callbackData.split("_")[0];
+        CheckedConsumer<Update> handler = callbackHandlers.get(callback);
 
-
-        if (callbackData.equals("HOME")) {
-            messageHandler.homeHandler(update);
-            SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-
-            executeNewMessage(sendMessage); //execute the message
-            return;
+        if (handler != null) {
+            handler.accept(update);
+        }
+        else {
+            log.warn("No handler found for callback: {}", callbackData);
         }
 
-        if (callbackData.equals("CREATE NEW FOLDER")) { // create folder pressed
-            messageHandler.createFolderHandler(update);
-            SendMessage sendMessage = messageBuilder.createFolderMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
+    }
 
-        if (callbackData.equals("DELETE FOLDER")) {
-            messageHandler.deleteFolderHandler(update);
-            SendMessage sendMessage = messageBuilder.getHomeMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
+    private void homeCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.homeHandler(update);
+        SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
 
-        if (callbackData.contains("SHOW FOLDER_")) {
-            //log.info("");
-            messageHandler.showFolderHandler(update);
-            SendMessage sendMessage = messageBuilder.folderShowMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
+        executeNewMessage(sendMessage); //execute the message
+    }
 
-        if (callbackData.equals("ADD WORD")) {
-            //log.info("");
-            messageHandler.askToAddWordHandler(update);
-            SendMessage sendMessage = messageBuilder.addWordMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
+    private void createFolderCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.createFolderHandler(update);
+        SendMessage sendMessage = messageBuilder.createFolderMessage(update);
+        executeNewMessage(sendMessage);
+    }
 
-        if (callbackData.equals("SHOW WORDS")) {
-            messageHandler.showWordsHandler(update);
-            SendMessage sendMessage = messageBuilder.showWordsMessage(update);
-            executeNewMessage(sendMessage);
+    private void deleteFolderCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.deleteFolderHandler(update);
+        SendMessage sendMessage = messageBuilder.getHomeMessage(update);
+        executeNewMessage(sendMessage);
+    }
 
-            sendMessage = messageBuilder.folderShowMessage(update); //send home message
-            executeNewMessage(sendMessage);
-        }
+    private void showFolderCallbackHandler(Update update) throws TelegramApiException {
+        //log.info("");
+        messageHandler.showFolderHandler(update);
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
 
-        if (callbackData.equals("DELETE WORD")) {
-            messageHandler.askToDeleteWordHandler(update);
-            SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
-            executeNewMessage(sendMessage);
-            return;
-        }
+    private void addWordCallbackHandler(Update update) throws TelegramApiException {
+        //log.info("");
+        messageHandler.askToAddWordHandler(update);
+        SendMessage sendMessage = messageBuilder.addWordMessage(update);
+        executeNewMessage(sendMessage);
+    }
 
+    private void showWordsCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.showWordsHandler(update);
+        SendMessage sendMessage = messageBuilder.showWordsMessage(update);
+        executeNewMessage(sendMessage);
+
+        sendMessage = messageBuilder.folderShowMessage(update); //send home message
+        executeNewMessage(sendMessage);
+    }
+
+    private void deleteWordCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.askToDeleteWordHandler(update);
+        SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
+        executeNewMessage(sendMessage);
     }
 
 }
