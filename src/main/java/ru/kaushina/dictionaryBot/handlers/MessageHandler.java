@@ -66,6 +66,11 @@ public class MessageHandler {
             throw new IllegalArgumentException("Folder name cannot be empty");
         }
 
+        if (folderName.length() > 100) {
+            log.warn("user {} tried to create a folder with too long name", chatId);
+            return null;
+        }
+
         Folder folder = folderService.createFolder(folderName, chatId);
         if (folder != null) {
             log.info("folder {} successfully created for user {}", folderName, chatId);
@@ -106,13 +111,17 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 
-    public void addKeywordHandler(Update update) {
+    public boolean addKeywordHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
         User user = userService.findByChatId(chatId);
         String key = update.getMessage().getText();
+        if (key.length()>1000) {
+            return false;
+        }
         userService.setCurrentWordKey(chatId, key);
         userService.setUserState(chatId, UserState.ADD_VALUE);
+        return true;
     }
 
     public Word addValueHandler(Update update) {
