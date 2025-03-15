@@ -149,6 +149,11 @@ public class MessageBuilder {
         rowsInline.add(row);
 
         row = new ArrayList<>();
+        row.add(createButton("Remember mode", "REMEMBER MODE"));
+        row.add(createButton("Test mode", "TEST MODE"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
         // button for home screen
         row.add(createButton("Go back", "HOME"));
 

@@ -7,4 +7,5 @@ public enum UserState {
     ADD_KEY,
     ADD_VALUE,
     DELETE_WORD,
+    REMEMBER_MODE,
 }

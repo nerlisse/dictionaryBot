@@ -64,7 +64,9 @@ public class TelegramBotService {
         callbackHandlers.put("ADD WORD", this::addWordCallbackHandler);
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
+        callbackHandlers.put("REMEMBER MODE", this::rememberModeCallbackHandler);
     }
+
 
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
@@ -239,6 +241,13 @@ public class TelegramBotService {
         messageHandler.askToDeleteWordHandler(update);
         SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
         executeNewMessage(sendMessage);
+    }
+
+
+    //start remeber mode
+    private void rememberModeCallbackHandler(Update update) {
+        //start mode handler and then in it start the first word like right that second
+        messageHandler.rememberModeStartHandler(update);
     }
 
 }

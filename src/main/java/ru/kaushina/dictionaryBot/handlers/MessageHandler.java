@@ -160,4 +160,11 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         return deleted;
     }
+
+    public void rememberModeStartHandler(Update update) {
+        //what do we do when we start a remember mode thing
+        Long chatId = update.getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        //do smth with sessionservice, send chatId, folderId
+    }
 }
