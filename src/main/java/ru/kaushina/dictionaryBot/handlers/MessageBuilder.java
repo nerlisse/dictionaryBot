@@ -4,6 +4,7 @@ package ru.kaushina.dictionaryBot.handlers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -269,21 +270,23 @@ public class MessageBuilder {
         return message;
     }
 
-    public SendMessage rememberModeFirstMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
-
-        TrainingSession session = trainingSessionService.getTrainingSession(chatId);
+    private String textRememberMode(Long chatId, TrainingSession session) {
         int index = session.getWordsCount();
         SessionWord sessionWord = sessionWordService.getSessionWord(session, index);
 
         Word word = wordService.getWordById(sessionWord.getWordId());
 
         String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
-        text += "Progress: " + (session.getWordsCount()+1) + "out of " + (session.getWordsLength());
-        message.setText(text);
 
+        if (session.isShowAnswer()) {
+            text += "Answer:\n" + word.getWordValue() + "\n\n";
+        }
+
+        text += "Progress: " + (session.getWordsCount()+1) + "out of " + (session.getWordsLength());
+        return text;
+    }
+
+    private InlineKeyboardMarkup markupRememberMode(TrainingSession session) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
 
@@ -293,10 +296,10 @@ public class MessageBuilder {
         rowsInLine.add(row);
         row = new ArrayList<>();
         if (session.isShowAnswer()) {
-            row.add(createButton("Show the answer", "SHOW ANSWER"));
+            row.add(createButton("Hide the answer", "SHOW ANSWER"));
         }
         else {
-            row.add(createButton("Hide the answer", "HIDE ANSWER"));
+            row.add(createButton("Show the answer", "HIDE ANSWER"));
         }
         rowsInLine.add(row);
 
@@ -305,8 +308,31 @@ public class MessageBuilder {
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
-        message.setReplyMarkup(inlineKeyboardMarkup);
+        return inlineKeyboardMarkup;
+    }
+
+    public SendMessage rememberModeFirstMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        TrainingSession session = trainingSessionService.getTrainingSession(chatId);
+        message.setText(textRememberMode(chatId, session));
+        message.setReplyMarkup(markupRememberMode(session));
         return message;
 
+    }
+
+    public EditMessageText showRememberMessage(Update update) {
+
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+
+        TrainingSession session = trainingSessionService.getTrainingSession(chatId);
+        editMessageText.setText(textRememberMode(chatId, session));
+        editMessageText.setReplyMarkup(markupRememberMode(session));
+        return editMessageText;
     }
 }

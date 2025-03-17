@@ -66,6 +66,8 @@ public class TelegramBotService {
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
         callbackHandlers.put("REMEMBER MODE", this::rememberModeStartCallbackHandler);
         callbackHandlers.put("END REMEMBER", this::rememberModeEndCallbackHandler);
+        callbackHandlers.put("SHOW ANSWER", this::showAnswerCallbackHandler);
+        callbackHandlers.put("HIDE ANSWER", this::showAnswerCallbackHandler);
     }
 
 
@@ -150,7 +152,7 @@ public class TelegramBotService {
     }
 
 
-    private void executeEditMessage(Update update) throws TelegramApiException {
+    private void executeOutdatedEditMessage(Update update) throws TelegramApiException {
 
         EditMessageText messageText = new EditMessageText();
         messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
@@ -173,7 +175,7 @@ public class TelegramBotService {
             answer.setShowAlert(false);
             messageSender.executeCallbackAnswer(answer);
 
-            executeEditMessage(update);
+            executeOutdatedEditMessage(update);
 
             return;
         }
@@ -267,6 +269,16 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
+
+    private void showAnswerCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.showAnswerHandler(update);
+        EditMessageText messageText = messageBuilder.showRememberMessage(update);
+        executeEditMessage(messageText);
+    }
+
+    private void executeEditMessage(EditMessageText editMessageText) throws TelegramApiException {
+        messageSender.executeEditMessageText(editMessageText);
+    }
 
 
 }

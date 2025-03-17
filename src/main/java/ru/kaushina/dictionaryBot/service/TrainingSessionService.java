@@ -66,4 +66,11 @@ public class TrainingSessionService {
         User user = userService.findByChatId(chatId);
         return trainingSessionRepository.findByUser(user);
     }
+
+    public void changeShowRememberSession(Long chatId) {
+        User user = userService.findByChatId(chatId);
+        TrainingSession session = trainingSessionRepository.findByUser(user);
+        session.setShowAnswer(!session.isShowAnswer());
+        trainingSessionRepository.save(session);
+    }
 }
