@@ -12,10 +12,10 @@ import java.util.List;
 public class TrainingSession {
 
     @Id
-    private long chatId;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @OneToOne
-    @MapsId
     @JoinColumn(name = "chat_id")
     private User user;
 

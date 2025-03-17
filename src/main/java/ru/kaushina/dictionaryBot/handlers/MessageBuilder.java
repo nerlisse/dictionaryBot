@@ -27,11 +27,12 @@ public class MessageBuilder {
     private final SessionWordService sessionWordService;
     private final WordService wordService;
 
-    public MessageBuilder(UserService userService, FolderService folderService, TrainingSessionService trainingSessionService, SessionWordService sessionWordService, WordService wordService) {
+    public MessageBuilder(UserService userService, FolderService folderService, TrainingSessionService trainingSessionService, SessionWordService sessionWordService, WordService wordService, WordService wordService1) {
         this.userService = userService;
         this.folderService = folderService;
         this.trainingSessionService = trainingSessionService;
         this.sessionWordService = sessionWordService;
+        this.wordService = wordService1;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -279,6 +280,33 @@ public class MessageBuilder {
 
         Word word = wordService.getWordById(sessionWord.getWordId());
 
+        String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
+        text += "Progress: " + (session.getWordsCount()+1) + "out of " + (session.getWordsLength());
+        message.setText(text);
+
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(createButton("I remember", "REMEMBER"));
+        row.add(createButton("I do not remember", "DO NOT REMEMBER"));
+        rowsInLine.add(row);
+        row = new ArrayList<>();
+        if (session.isShowAnswer()) {
+            row.add(createButton("Show the answer", "SHOW ANSWER"));
+        }
+        else {
+            row.add(createButton("Hide the answer", "HIDE ANSWER"));
+        }
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("End the practice", "END REMEMBER"));
+        rowsInLine.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInLine);
+        message.setReplyMarkup(inlineKeyboardMarkup);
+        return message;
 
     }
 }

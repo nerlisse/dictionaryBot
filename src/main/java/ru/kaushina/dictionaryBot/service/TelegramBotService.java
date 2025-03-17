@@ -65,6 +65,7 @@ public class TelegramBotService {
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
         callbackHandlers.put("REMEMBER MODE", this::rememberModeStartCallbackHandler);
+        callbackHandlers.put("END REMEMBER", this::rememberModeEndCallbackHandler);
     }
 
 
@@ -257,5 +258,15 @@ public class TelegramBotService {
         }
         executeNewMessage(sendMessage);
     }
+
+
+    private void rememberModeEndCallbackHandler(Update update) throws TelegramApiException {
+        //if button end practice pressed
+        messageHandler.endRememberModeHandler(update);
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
+
 
 }

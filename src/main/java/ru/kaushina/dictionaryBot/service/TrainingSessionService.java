@@ -50,17 +50,20 @@ public class TrainingSessionService {
         session.setWordsCount(0);
         session.setSuccessfulWordCount(0);
         session.setWordsLength(words.size());
+        session.setShowAnswer(false);
 
         trainingSessionRepository.save(session);
         return true;
     }
 
     public void endRememberSession(Long chatId) {
-        TrainingSession session = trainingSessionRepository.findByChatId(chatId);
+        User user = userService.findByChatId(chatId);
+        TrainingSession session = trainingSessionRepository.findByUser(user);
         trainingSessionRepository.delete(session);
     }
 
     public TrainingSession getTrainingSession(Long chatId) {
-        return trainingSessionRepository.findByChatId(chatId);
+        User user = userService.findByChatId(chatId);
+        return trainingSessionRepository.findByUser(user);
     }
 }

@@ -35,9 +35,13 @@ public class MessageHandler {
     public void startCommandHandler(Update update) {
         userService.registerUser(update);
         Long chatId = update.getMessage().getChatId();
+        if (userService.getUserState(chatId) == UserState.REMEMBER_MODE) {
+            trainingSessionService.endRememberSession(chatId);
+        }
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         userService.setCurrentWordKey(chatId, null);
+
     }
 
     public void homeHandler(Update update) {
@@ -167,7 +171,7 @@ public class MessageHandler {
 
     public boolean rememberModeStartHandler(Update update) {
         //what do we do when we start a remember mode thing
-        Long chatId = update.getMessage().getChatId();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
         boolean started = trainingSessionService.startRememberSession(chatId, folderId);
         if (started) {
@@ -175,6 +179,24 @@ public class MessageHandler {
         }
         return started;
         //do smth with sessionservice, send chatId, folderId
+    }
+
+    public void endRememberModeHandler(Update update) {
+        Long chatId;
+        if (update.hasMessage()) {
+            chatId = update.getMessage().getChatId();
+        }
+        else {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
+        Long folderId = userService.getCurrentFolderId(chatId);
+        trainingSessionService.endRememberSession(chatId);
+        if (update.hasCallbackQuery()) {
+            userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        }
+        else {
+            userService.setUserState(chatId, UserState.MAIN_MENU);
+        }
     }
 
 }

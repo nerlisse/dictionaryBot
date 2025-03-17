@@ -42,6 +42,11 @@ public class UserService {
         }
     }
 
+    public UserState getUserState(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getUserState();
+    }
+
     public User registerUser(Update update) {
         Message message = update.getMessage();
         long chatId = message.getChatId();
