@@ -8,9 +8,10 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.SessionWord;
+import ru.kaushina.dictionaryBot.model.TrainingSession;
 import ru.kaushina.dictionaryBot.model.Word;
-import ru.kaushina.dictionaryBot.service.FolderService;
-import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +23,15 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final TrainingSessionService trainingSessionService;
+    private final SessionWordService sessionWordService;
+    private final WordService wordService;
 
-    public MessageBuilder(UserService userService, FolderService folderService) {
+    public MessageBuilder(UserService userService, FolderService folderService, TrainingSessionService trainingSessionService, SessionWordService sessionWordService, WordService wordService) {
         this.userService = userService;
         this.folderService = folderService;
+        this.trainingSessionService = trainingSessionService;
+        this.sessionWordService = sessionWordService;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -252,5 +258,27 @@ public class MessageBuilder {
             message.setText("Couldn't delete word: no such key");
         }
         return message;
+    }
+
+    public SendMessage failedRememberMode(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+        message.setText("Could't start remember mode: make sure your folder isn't empty");
+        return message;
+    }
+
+    public SendMessage rememberModeFirstMessage(Update update) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        TrainingSession session = trainingSessionService.getTrainingSession(chatId);
+        int index = session.getWordsCount();
+        SessionWord sessionWord = sessionWordService.getSessionWord(session, index);
+
+        Word word = wordService.getWordById(sessionWord.getWordId());
+
+
     }
 }

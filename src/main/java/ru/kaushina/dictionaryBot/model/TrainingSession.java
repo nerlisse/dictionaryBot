@@ -34,4 +34,6 @@ public class TrainingSession {
     private int wordsLength;    // сколько всего слов
     private int successfulWordCount; // на скольких словах нажали помню
 
+    private boolean showAnswer; // показан ответ или нет
+
 }

@@ -2,12 +2,14 @@ package ru.kaushina.dictionaryBot.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
+import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
 
@@ -20,11 +22,13 @@ public class MessageHandler {
     private final UserService userService;
     private final FolderService folderService;
     private final WordService wordService;
+    private final TrainingSessionService trainingSessionService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, TrainingSessionService trainingSessionService1) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
+        this.trainingSessionService = trainingSessionService1;
     }
 
     //pressing start command
@@ -161,10 +165,16 @@ public class MessageHandler {
         return deleted;
     }
 
-    public void rememberModeStartHandler(Update update) {
+    public boolean rememberModeStartHandler(Update update) {
         //what do we do when we start a remember mode thing
         Long chatId = update.getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
+        boolean started = trainingSessionService.startRememberSession(chatId, folderId);
+        if (started) {
+            userService.setUserState(chatId, UserState.REMEMBER_MODE);
+        }
+        return started;
         //do smth with sessionservice, send chatId, folderId
     }
+
 }

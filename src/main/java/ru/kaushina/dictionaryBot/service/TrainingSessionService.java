@@ -55,12 +55,12 @@ public class TrainingSessionService {
         return true;
     }
 
-    public void endRememberSession(Long chatId, Long folderId) {
+    public void endRememberSession(Long chatId) {
         TrainingSession session = trainingSessionRepository.findByChatId(chatId);
-        List<SessionWord> sessionWords = session.getSessionWords();
-        for (SessionWord sessionWord : sessionWords) {
-            sessionWordService.deleteSessionWord(sessionWord);
-        }
         trainingSessionRepository.delete(session);
+    }
+
+    public TrainingSession getTrainingSession(Long chatId) {
+        return trainingSessionRepository.findByChatId(chatId);
     }
 }

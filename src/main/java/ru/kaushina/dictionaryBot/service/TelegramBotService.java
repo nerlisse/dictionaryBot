@@ -64,7 +64,7 @@ public class TelegramBotService {
         callbackHandlers.put("ADD WORD", this::addWordCallbackHandler);
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
-        callbackHandlers.put("REMEMBER MODE", this::rememberModeCallbackHandler);
+        callbackHandlers.put("REMEMBER MODE", this::rememberModeStartCallbackHandler);
     }
 
 
@@ -245,9 +245,17 @@ public class TelegramBotService {
 
 
     //start remeber mode
-    private void rememberModeCallbackHandler(Update update) {
+    private void rememberModeStartCallbackHandler(Update update) throws TelegramApiException {
         //start mode handler and then in it start the first word like right that second
-        messageHandler.rememberModeStartHandler(update);
+        boolean started = messageHandler.rememberModeStartHandler(update);
+        SendMessage sendMessage;
+        if (started) {
+            sendMessage = messageBuilder.rememberModeFirstMessage(update);
+        }
+        else {
+            sendMessage = messageBuilder.failedRememberMode(update);
+        }
+        executeNewMessage(sendMessage);
     }
 
 }

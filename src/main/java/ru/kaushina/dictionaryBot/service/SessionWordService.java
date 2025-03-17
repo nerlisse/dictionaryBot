@@ -27,4 +27,8 @@ public class SessionWordService {
     public void deleteSessionWord(SessionWord sessionWord) {
         sessionWordRepository.delete(sessionWord);
     }
+
+    public SessionWord getSessionWord(TrainingSession session, int index) {
+        return sessionWordRepository.findBySessionAndOrderIndex(session, index);
+    }
 }
