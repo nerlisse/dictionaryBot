@@ -43,6 +43,8 @@ public class TelegramBotService {
 
     private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
     private final Map<String, CheckedConsumer<Update>> callbackHandlers;
+    @Autowired
+    private TrainingSessionService trainingSessionService;
 
 
     public TelegramBotService(BotConfig config) {
@@ -64,7 +66,12 @@ public class TelegramBotService {
         callbackHandlers.put("ADD WORD", this::addWordCallbackHandler);
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
+        callbackHandlers.put("REMEMBER MODE", this::startRememberModeCallbackHandler);
+        callbackHandlers.put("END REMEMBER", this::endRememberModeCallbackHandler);
+        callbackHandlers.put("SHOW ANSWER", this::changeAnswerVisibilityCallbackHandler);
+        callbackHandlers.put("HIDE ANSWER", this::changeAnswerVisibilityCallbackHandler);
     }
+
 
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
@@ -147,7 +154,7 @@ public class TelegramBotService {
     }
 
 
-    private void executeEditMessage(Update update) throws TelegramApiException {
+    private void executeFailedEditMessage(Update update) throws TelegramApiException {
 
         EditMessageText messageText = new EditMessageText();
         messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
@@ -170,7 +177,7 @@ public class TelegramBotService {
             answer.setShowAlert(false);
             messageSender.executeCallbackAnswer(answer);
 
-            executeEditMessage(update);
+            executeFailedEditMessage(update);
 
             return;
         }
@@ -252,6 +259,23 @@ public class TelegramBotService {
             sendMessage = messageBuilder.failedRememberModeMessage(update);
         }
         executeNewMessage(sendMessage);
+    }
+
+    private void endRememberModeCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.endRememberModeHandler(update);
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
+
+    private void changeAnswerVisibilityCallbackHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession session = messageHandler.changeAnswerHandler(update);
+        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+        executeEditMessage(message);
+    }
+
+    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
+        messageSender.executeEditMessageText(editMessage);
     }
 
 }

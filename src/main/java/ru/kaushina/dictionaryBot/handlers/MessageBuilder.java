@@ -154,6 +154,11 @@ public class MessageBuilder {
         rowsInline.add(row);
 
         row = new ArrayList<>();
+        row.add(createButton("Remember mode", "REMEMBER MODE"));
+        row.add(createButton("Test mode", "TEST MODE"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
         // button for home screen
         row.add(createButton("Go back", "HOME"));
 
@@ -257,7 +262,7 @@ public class MessageBuilder {
     public SendMessage startRememberModeMessage(Update update,
                                                 TrainingSessionService.TrainingSession session) {
         SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
         message.setChatId(chatId.toString());
 
         message.setText(textRememberMode(session));
@@ -308,7 +313,7 @@ public class MessageBuilder {
 
     public SendMessage failedRememberModeMessage(Update update) {
         SendMessage sendMessage = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
         sendMessage.setChatId(chatId.toString());
         sendMessage.setText("failed to start remember mode, make sure folder is not empty");
         return sendMessage;
@@ -317,8 +322,9 @@ public class MessageBuilder {
     public EditMessageText showRememberModeMessage(Update update,
                                                    TrainingSessionService.TrainingSession session) {
         EditMessageText editMessageText = new EditMessageText();
-        Long chatId = update.getMessage().getChatId();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
         editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
 
         editMessageText.setText(textRememberMode(session));
         editMessageText.setReplyMarkup(markupRememberMode(session));

@@ -37,6 +37,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         userService.setCurrentWordKey(chatId, null);
+        trainingSessionService.endRememberSession(chatId);
     }
 
     public void homeHandler(Update update) {
@@ -174,5 +175,24 @@ public class MessageHandler {
             userService.setUserState(chatId, UserState.REMEMBER_MODE);
         }
         return started;
+    }
+
+    public void endRememberModeHandler(Update update) {
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
+        else {
+            chatId = update.getMessage().getChatId();
+        }
+        trainingSessionService.endRememberSession(chatId);
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+    }
+
+    public TrainingSessionService.TrainingSession changeAnswerHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        session.setShowAnswer(!session.isShowAnswer());
+        return session;
     }
 }

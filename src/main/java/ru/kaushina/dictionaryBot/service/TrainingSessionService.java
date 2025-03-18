@@ -72,10 +72,13 @@ public class TrainingSessionService {
 
 
 
-    public void endRememberSession(Long chatId, Long folderId, String callbackData) {
+    public void endRememberSession(Long chatId) {
         sessions.remove(chatId);
     }
 
+    public TrainingSession getSession(Long chatId) {
+        return sessions.get(chatId);
+    }
 
 
 }
