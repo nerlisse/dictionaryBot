@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
+import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 
 import java.util.ArrayList;
@@ -247,5 +248,22 @@ public class MessageBuilder {
             message.setText("Couldn't delete word: no such key");
         }
         return message;
+    }
+
+    public SendMessage startRememberModeMessage(Update update,
+                                                TrainingSessionService.TrainingSession.SessionWord word) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+
+    }
+
+    public SendMessage failedRememberModeMessage(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+        sendMessage.setText("failed to start remember mode, make sure folder is not empty");
+        return sendMessage;
     }
 }

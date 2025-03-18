@@ -8,6 +8,7 @@ import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
+import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
 
@@ -20,11 +21,13 @@ public class MessageHandler {
     private final UserService userService;
     private final FolderService folderService;
     private final WordService wordService;
+    private final TrainingSessionService trainingSessionService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
+        this.trainingSessionService = trainingSessionService;
     }
 
     //pressing start command
@@ -159,5 +162,17 @@ public class MessageHandler {
         boolean deleted = wordService.deleteWord(word, folderId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         return deleted;
+    }
+
+    public TrainingSessionService.TrainingSession.SessionWord startRememberModeHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        String callbackData = update.getCallbackQuery().getData();
+        TrainingSessionService.TrainingSession.SessionWord started = trainingSessionService
+                .createRememberSession(chatId, folderId, callbackData);
+        if (started != null) {
+            userService.setUserState(chatId, UserState.REMEMBER_MODE);
+        }
+        return started;
     }
 }

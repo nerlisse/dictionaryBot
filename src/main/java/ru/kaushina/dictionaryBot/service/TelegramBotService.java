@@ -241,4 +241,16 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
+    private void startRememberModeCallbackHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession.SessionWord started = messageHandler.startRememberModeHandler(update);
+        SendMessage sendMessage;
+        if (started != null) {
+            sendMessage = messageBuilder.startRememberModeMessage(update, started);
+        }
+        else {
+            sendMessage = messageBuilder.failedRememberModeMessage(update);
+        }
+        executeNewMessage(sendMessage);
+    }
+
 }
