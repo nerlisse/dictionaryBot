@@ -241,8 +241,9 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
+    // КАЖДОМ ДЕЙСТВИИ ПРВКЕРЯТЬ ЕСТЬ ЛИ СЕССИЯ ИНАЧЕ ТЫ ЛОХ
     private void startRememberModeCallbackHandler(Update update) throws TelegramApiException {
-        TrainingSessionService.TrainingSession.SessionWord started = messageHandler.startRememberModeHandler(update);
+        TrainingSessionService.TrainingSession started = messageHandler.startRememberModeHandler(update);
         SendMessage sendMessage;
         if (started != null) {
             sendMessage = messageBuilder.startRememberModeMessage(update, started);

@@ -164,11 +164,11 @@ public class MessageHandler {
         return deleted;
     }
 
-    public TrainingSessionService.TrainingSession.SessionWord startRememberModeHandler(Update update) {
+    public TrainingSessionService.TrainingSession startRememberModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
         String callbackData = update.getCallbackQuery().getData();
-        TrainingSessionService.TrainingSession.SessionWord started = trainingSessionService
+        TrainingSessionService.TrainingSession started = trainingSessionService
                 .createRememberSession(chatId, folderId, callbackData);
         if (started != null) {
             userService.setUserState(chatId, UserState.REMEMBER_MODE);

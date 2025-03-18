@@ -4,6 +4,7 @@ package ru.kaushina.dictionaryBot.handlers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -12,6 +13,7 @@ import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.WordService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +25,12 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final WordService wordService;
 
-    public MessageBuilder(UserService userService, FolderService folderService) {
+    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService) {
         this.userService = userService;
         this.folderService = folderService;
+        this.wordService = wordService;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -251,13 +255,56 @@ public class MessageBuilder {
     }
 
     public SendMessage startRememberModeMessage(Update update,
-                                                TrainingSessionService.TrainingSession.SessionWord word) {
+                                                TrainingSessionService.TrainingSession session) {
         SendMessage message = new SendMessage();
         Long chatId = update.getMessage().getChatId();
         message.setChatId(chatId.toString());
 
-
+        message.setText(textRememberMode(session));
+        message.setReplyMarkup(markupRememberMode(session));
+        return message;
     }
+
+    private String textRememberMode(TrainingSessionService.TrainingSession session) {
+        int index = session.getWordIndex();
+        Word word = wordService.findById(session.getWords().getFirst().getWordId());
+
+        String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
+
+        if (session.isShowAnswer()) {
+            text += "Answer:\n" + word.getWordValue() + "\n\n";
+        }
+
+        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+
+        return text;
+    }
+
+    private InlineKeyboardMarkup markupRememberMode(TrainingSessionService.TrainingSession session) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(createButton("I remember", "REMEMBER"));
+        row.add(createButton("I do not remember", "DO NOT REMEMBER"));
+        rowsInLine.add(row);
+        row = new ArrayList<>();
+        if (session.isShowAnswer()) {
+            row.add(createButton("Hide the answer", "SHOW ANSWER"));
+        }
+        else {
+            row.add(createButton("Show the answer", "HIDE ANSWER"));
+        }
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("End the practice", "END REMEMBER"));
+        rowsInLine.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInLine);
+        return inlineKeyboardMarkup;
+    }
+
 
     public SendMessage failedRememberModeMessage(Update update) {
         SendMessage sendMessage = new SendMessage();
@@ -265,5 +312,17 @@ public class MessageBuilder {
         sendMessage.setChatId(chatId.toString());
         sendMessage.setText("failed to start remember mode, make sure folder is not empty");
         return sendMessage;
+    }
+
+    public EditMessageText showRememberModeMessage(Update update,
+                                                   TrainingSessionService.TrainingSession session) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getMessage().getChatId();
+        editMessageText.setChatId(chatId.toString());
+
+        editMessageText.setText(textRememberMode(session));
+        editMessageText.setReplyMarkup(markupRememberMode(session));
+
+        return editMessageText;
     }
 }

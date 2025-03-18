@@ -40,7 +40,7 @@ public class TrainingSessionService {
         this.folderService = folderService;
     }
 
-    public SessionWord createRememberSession(Long chatId, Long folderId, String callbackData) {
+    public TrainingSession createRememberSession(Long chatId, Long folderId, String callbackData) {
         List<Word> words = folderService.getFolderWords(folderId);
         if (sessions.containsKey(chatId) || words.isEmpty()) {
             return null;
@@ -67,7 +67,7 @@ public class TrainingSessionService {
                 .build();
 
         sessions.put(chatId, session);
-        return session.getWords().getFirst();
+        return session;
     }
 
 
