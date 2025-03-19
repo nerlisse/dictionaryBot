@@ -224,8 +224,8 @@ public class MessageHandler {
         if (message.equalsIgnoreCase(wordValue)) {
             session.setSuccessfulCount(session.getSuccessfulCount() + 1);
             wordId.setRemembered(true);
-            session.setPreviousWord(wordId);
         }
+        session.setPreviousWord(wordId);
         session.setWordIndex(session.getWordIndex() + 1);
         if (session.getWordIndex() == session.getFolderSize())
             session.setOver(true);

@@ -368,7 +368,11 @@ public class MessageBuilder {
     public SendMessage showTestModeMessage(Update update,
                                            TrainingSessionService.TrainingSession session) {
         SendMessage sendMessage = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else
+            chatId = update.getMessage().getChatId();
         sendMessage.setChatId(chatId.toString());
 
         if (!session.isOver()) {
@@ -398,7 +402,7 @@ public class MessageBuilder {
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        text = "Try to remember what that term means and type it down:" +
+        text += "Try to remember what that term means and type it down:" +
                 "\n\n" + word.getWordKey() + "\n\n";
 
         text += "\nKeep in mind that you have to type in exactly how it was " +
