@@ -21,6 +21,7 @@ public class TrainingSessionService {
         private Long folderId;
         private Long chatId;
         private List<SessionWord> words;
+        private SessionWord previousWord;
         private int folderSize;
         private int wordIndex;
         private int successfulCount;
@@ -49,6 +50,7 @@ public class TrainingSessionService {
                 .mode(callbackData.equals("REMEMBER MODE") ? TrainingMode.REMEMBER_MODE : TrainingMode.TEST_MODE)
                 .folderSize(sessionWords.size())
                 .words(sessionWords)
+                .previousWord(null)
                 .wordIndex(0)
                 .successfulCount(0)
                 .showAnswer(false)

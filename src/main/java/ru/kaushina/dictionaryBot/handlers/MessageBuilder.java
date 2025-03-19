@@ -365,23 +365,40 @@ public class MessageBuilder {
 
     }
 
-    public SendMessage startTestModeMessage(Update update,
-                                            TrainingSessionService.TrainingSession session) {
+    public SendMessage showTestModeMessage(Update update,
+                                           TrainingSessionService.TrainingSession session) {
         SendMessage sendMessage = new SendMessage();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         sendMessage.setChatId(chatId.toString());
 
-        sendMessage.setText(textTestMode(session));
-        sendMessage.setReplyMarkup(markupTestMode(session));
+        if (!session.isOver()) {
+            sendMessage.setText(textTestMode(session));
+            sendMessage.setReplyMarkup(markupTestMode(session));
+        } else {
+            sendMessage.setText(endRememberModeMessage(session));
+        }
 
         return sendMessage;
     }
 
     private String textTestMode(TrainingSessionService.TrainingSession session) {
+
+        String text = "";
+        if (session.getPreviousWord() != null) {
+            //show the answer for previous word
+            Word prevWord = wordService.findById(session.getPreviousWord().getWordId());
+            if (session.getPreviousWord().isRemembered()) {
+                text += "Correct!\n";
+            }
+            else text+= "Incorrect!\n";
+            text += "Answer: \n";
+            text += prevWord.getWordValue() + "\n\n";
+        }
+
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        String text = "Try to remember what that term means and type it down:" +
+        text = "Try to remember what that term means and type it down:" +
                 "\n\n" + word.getWordKey() + "\n\n";
 
         text += "\nKeep in mind that you have to type in exactly how it was " +
@@ -402,4 +419,5 @@ public class MessageBuilder {
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
         return inlineKeyboardMarkup;
     }
+
 }

@@ -12,6 +12,7 @@ import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -206,8 +207,29 @@ public class MessageHandler {
             session.setSuccessfulCount(session.getSuccessfulCount() + 1);
         }
         session.setWordIndex(session.getWordIndex() + 1);
-        if (session.getWordIndex() == session.getFolderSize()) session.setOver(true);
+        if (session.getWordIndex() == session.getFolderSize())
+            session.setOver(true);
         session.setShowAnswer(false);
+        return session;
+    }
+
+    public TrainingSessionService.TrainingSession answerTestModeHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        if (session == null) return null;
+        String message = update.getMessage().getText();
+        TrainingSessionService.TrainingSession.SessionWord wordId = session.getWords().get(session.getWordIndex());
+        Word word = wordService.findById(wordId.getWordId());
+        String wordValue = word.getWordValue();
+        if (message.equalsIgnoreCase(wordValue)) {
+            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
+            wordId.setRemembered(true);
+            session.setPreviousWord(wordId);
+        }
+        session.setWordIndex(session.getWordIndex() + 1);
+        if (session.getWordIndex() == session.getFolderSize())
+            session.setOver(true);
+
         return session;
     }
 }

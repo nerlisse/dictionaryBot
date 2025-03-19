@@ -57,6 +57,7 @@ public class TelegramBotService {
         stateHandlers.put(UserState.ADD_KEY, this::addKeyHandler);
         stateHandlers.put(UserState.ADD_VALUE, this::addValueHandler);
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
+        stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
 
         this.callbackHandlers = new HashMap<>();
         callbackHandlers.put("HOME", this::homeCallbackHandler);
@@ -75,7 +76,6 @@ public class TelegramBotService {
         callbackHandlers.put("TEST MODE", this::startTestModeCallbackHandler);
     }
 
-
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
         //handling update
@@ -93,6 +93,10 @@ public class TelegramBotService {
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
         Message sentMessage = messageSender.executeMessage(sendMessage);
         userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
+    }
+
+    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
+        messageSender.executeEditMessageText(editMessage);
     }
 
     private void handleTextMessage(Update update) throws TelegramApiException {
@@ -311,7 +315,7 @@ public class TelegramBotService {
         TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
         SendMessage sendMessage;
         if (started != null) {
-            sendMessage = messageBuilder.startTestModeMessage(update, started);
+            sendMessage = messageBuilder.showTestModeMessage(update, started);
         }
         else {
             sendMessage = messageBuilder.failedPlayModeMessage(update);
@@ -320,8 +324,20 @@ public class TelegramBotService {
     }
 
 
-    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
-        messageSender.executeEditMessageText(editMessage);
+    private void answerTestModeHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession session = messageHandler.answerTestModeHandler(update);
+        if (session == null) {
+            failedSessionHandler(update);
+        }
+        else {
+            SendMessage sendMessage = messageBuilder.showTestModeMessage(update, session);
+            executeNewMessage(sendMessage);
+            if (session.isOver()) {
+                messageHandler.endPlayModeHandler(update);
+                sendMessage = messageBuilder.folderShowMessage(update);
+                executeNewMessage(sendMessage);
+            }
+        }
     }
 
 }
