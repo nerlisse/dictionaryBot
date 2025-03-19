@@ -200,36 +200,13 @@ public class MessageHandler {
 
     public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
-        if (session == null) return null;
         String callbackData = update.getCallbackQuery().getData();
-        if (callbackData.equals("REMEMBER")) {
-            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
-        }
-        session.setWordIndex(session.getWordIndex() + 1);
-        if (session.getWordIndex() == session.getFolderSize())
-            session.setOver(true);
-        session.setShowAnswer(false);
-        return session;
+        return trainingSessionService.answerRememberMode(chatId, callbackData);
     }
 
     public TrainingSessionService.TrainingSession answerTestModeHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
-        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
-        if (session == null) return null;
         String message = update.getMessage().getText();
-        TrainingSessionService.TrainingSession.SessionWord wordId = session.getWords().get(session.getWordIndex());
-        Word word = wordService.findById(wordId.getWordId());
-        String wordValue = word.getWordValue();
-        if (message.equalsIgnoreCase(wordValue)) {
-            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
-            wordId.setRemembered(true);
-        }
-        session.setPreviousWord(wordId);
-        session.setWordIndex(session.getWordIndex() + 1);
-        if (session.getWordIndex() == session.getFolderSize())
-            session.setOver(true);
-
-        return session;
+        return trainingSessionService.answerTestMode(chatId, message);
     }
 }

@@ -43,8 +43,6 @@ public class TelegramBotService {
 
     private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
     private final Map<String, CheckedConsumer<Update>> callbackHandlers;
-    @Autowired
-    private TrainingSessionService trainingSessionService;
 
 
     public TelegramBotService(BotConfig config) {

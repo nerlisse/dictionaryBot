@@ -26,11 +26,13 @@ public class MessageBuilder {
     private final UserService userService;
     private final FolderService folderService;
     private final WordService wordService;
+    private final TrainingSessionService trainingSessionService;
 
-    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService) {
+    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, TrainingSessionService trainingSessionService1) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
+        this.trainingSessionService = trainingSessionService1;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -319,7 +321,7 @@ public class MessageBuilder {
         return sendMessage;
     }
 
-    private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
+    private String showPreviousAnswer(TrainingSessionService.TrainingSession session) {
         String text = "";
         if (session.getPreviousWord() != null) {
             //show the answer for previous word
@@ -331,13 +333,12 @@ public class MessageBuilder {
             text += "Answer: \n";
             text += prevWord.getWordValue() + "\n\n";
         }
+        return text;
+    }
 
-        text += "Training is over! Your results: ";
-        text += "\nWords in total: " + session.getFolderSize();
-        text += "\nWords Remembered: " + session.getSuccessfulCount();
-        double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
-        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
-        text += "\n\n Good job! Keep it up!";
+    private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
+        String text = showPreviousAnswer(session);
+        text += trainingSessionService.getStatistics(session);
         return text;
     }
 
@@ -403,17 +404,7 @@ public class MessageBuilder {
 
     private String textTestMode(TrainingSessionService.TrainingSession session) {
 
-        String text = "";
-        if (session.getPreviousWord() != null) {
-            //show the answer for previous word
-            Word prevWord = wordService.findById(session.getPreviousWord().getWordId());
-            if (session.getPreviousWord().isRemembered()) {
-                text += "Correct!\n";
-            }
-            else text+= "Incorrect!\n";
-            text += "Answer: \n";
-            text += prevWord.getWordValue() + "\n\n";
-        }
+        String text = showPreviousAnswer(session);
 
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());

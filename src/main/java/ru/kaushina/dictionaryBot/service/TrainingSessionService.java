@@ -13,6 +13,7 @@ public class TrainingSessionService {
 
     private final Map<Long, TrainingSession> sessions;
     private final FolderService folderService;
+    private final WordService wordService;
 
     @Data
     @Builder
@@ -36,14 +37,16 @@ public class TrainingSessionService {
         }
     }
 
-    public TrainingSessionService(FolderService folderService) {
+    public TrainingSessionService(FolderService folderService, WordService wordService) {
         sessions = new HashMap<>();
         this.folderService = folderService;
+        this.wordService = wordService;
     }
 
     public TrainingSession createTrainingSession(Long chatId, Long folderId, String callbackData) {
 
         List<SessionWord> sessionWords = shuffleWords(chatId, folderId);
+        if (sessionWords == null) {return null;}
         TrainingSession session = TrainingSession.builder()
                 .chatId(chatId)
                 .folderId(folderId)
@@ -78,7 +81,6 @@ public class TrainingSessionService {
         return sessionWords;
     }
 
-
     public void endTrainingSession(Long chatId) {
         sessions.remove(chatId);
     }
@@ -87,5 +89,44 @@ public class TrainingSessionService {
         return sessions.get(chatId);
     }
 
+    public TrainingSession answerRememberMode(Long chatId, String callbackData) {
+        TrainingSession session = getSession(chatId);
+        if (session == null) return null;
+        if (callbackData.equals("REMEMBER")) {
+            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
+        }
+        session.setWordIndex(session.getWordIndex() + 1);
+        if (session.getWordIndex() == session.getFolderSize())
+            session.setOver(true);
+        session.setShowAnswer(false);
+        return session;
+    }
 
+    public TrainingSession answerTestMode(Long chatId, String message) {
+        TrainingSessionService.TrainingSession session = getSession(chatId);
+        if (session == null) return null;
+        SessionWord wordId = session.getWords().get(session.getWordIndex());
+        Word word = wordService.findById(wordId.getWordId());
+        String wordValue = word.getWordValue();
+        if (message.equalsIgnoreCase(wordValue)) {
+            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
+            wordId.setRemembered(true);
+        }
+        session.setPreviousWord(wordId);
+        session.setWordIndex(session.getWordIndex() + 1);
+        if (session.getWordIndex() == session.getFolderSize())
+            session.setOver(true);
+        return session;
+    }
+
+    public String getStatistics(TrainingSession session) {
+        String text = "";
+        text += "Training is over! Your results: ";
+        text += "\nWords in total: " + session.getFolderSize();
+        text += "\nWords Remembered: " + session.getSuccessfulCount();
+        double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
+        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
+        text += "\n\n Good job! Keep it up!";
+        return text;
+    }
 }
