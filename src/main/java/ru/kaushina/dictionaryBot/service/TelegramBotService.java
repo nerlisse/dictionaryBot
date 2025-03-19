@@ -269,23 +269,41 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
+    private void failedSessionHandler(Update update) throws TelegramApiException {
+        EditMessageText message = messageBuilder.failedSessionMessage(update);
+        executeEditMessage(message);
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
 
     private void changeAnswerVisibilityCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.changeAnswerHandler(update);
-        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
-        executeEditMessage(message);
+        if (session != null) {
+            EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+            executeEditMessage(message);
+        }
+        else {
+            failedSessionHandler(update);
+        }
     }
 
 
     private void answerRememberModeHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.answerRememberModeHandler(update);
-        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
-        executeEditMessage(message);
-        if (session.isOver()) {
-            messageHandler.endRememberModeHandler(update);
-            SendMessage sendMessage = messageBuilder.folderShowMessage(update);
-            executeNewMessage(sendMessage);
+        if (session != null) {
+            EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+            executeEditMessage(message);
+            if (session.isOver()) {
+                messageHandler.endRememberModeHandler(update);
+                SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+                executeNewMessage(sendMessage);
+            }
         }
+        else {
+            failedSessionHandler(update);
+        }
+
     }
 
 

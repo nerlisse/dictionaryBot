@@ -192,13 +192,14 @@ public class MessageHandler {
     public TrainingSessionService.TrainingSession changeAnswerHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
-        session.setShowAnswer(!session.isShowAnswer());
+        if (session!=null) session.setShowAnswer(!session.isShowAnswer());
         return session;
     }
 
     public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        if (session == null) return null;
         String callbackData = update.getCallbackQuery().getData();
         if (callbackData.equals("REMEMBER")) {
             session.setSuccessfulCount(session.getSuccessfulCount() + 1);

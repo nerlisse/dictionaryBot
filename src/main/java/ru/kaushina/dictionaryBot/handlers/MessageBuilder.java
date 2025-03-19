@@ -346,4 +346,22 @@ public class MessageBuilder {
 
         return editMessageText;
     }
+
+    public EditMessageText failedSessionMessage(Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+            editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        }
+        else {
+            chatId = update.getMessage().getChatId();
+            editMessageText.setMessageId(update.getMessage().getMessageId());
+        }
+        editMessageText.setChatId(chatId.toString());
+
+        editMessageText.setText("Sorry, this session is no longer available:(");
+        return editMessageText;
+
+    }
 }
