@@ -323,8 +323,8 @@ public class MessageBuilder {
         String text = "Training is over! Your results: ";
         text += "\nWords in total: " + session.getFolderSize();
         text += "\nWords Remembered: " + session.getSuccessfulCount();
-        text += "\nPercentage of remembered words: " +
-                session.getSuccessfulCount() / session.getFolderSize() * 100 + "%";
+        double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
+        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
         text += "\n\n Good job! Keep it up!";
         return text;
     }
