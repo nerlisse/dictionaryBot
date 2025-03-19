@@ -273,7 +273,7 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
-    private void failedSessionHandler(Update update) throws TelegramApiException {
+    private void failedCallbackSessionHandler(Update update) throws TelegramApiException {
         EditMessageText message = messageBuilder.failedSessionMessage(update);
         executeEditMessage(message);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
@@ -288,7 +288,7 @@ public class TelegramBotService {
             executeEditMessage(message);
         }
         else {
-            failedSessionHandler(update);
+            failedCallbackSessionHandler(update);
         }
     }
 
@@ -305,7 +305,7 @@ public class TelegramBotService {
             }
         }
         else {
-            failedSessionHandler(update);
+            failedCallbackSessionHandler(update);
         }
 
     }
@@ -327,7 +327,7 @@ public class TelegramBotService {
     private void answerTestModeHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.answerTestModeHandler(update);
         if (session == null) {
-            failedSessionHandler(update);
+            failedMessageSessionHandler(update);
         }
         else {
             SendMessage sendMessage = messageBuilder.showTestModeMessage(update, session);
@@ -338,6 +338,14 @@ public class TelegramBotService {
                 executeNewMessage(sendMessage);
             }
         }
+    }
+
+    private void failedMessageSessionHandler(Update update) throws TelegramApiException {
+        SendMessage message = messageBuilder.failedSessionNewMessage(update);
+        executeNewMessage(message);
+
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
     }
 
 }

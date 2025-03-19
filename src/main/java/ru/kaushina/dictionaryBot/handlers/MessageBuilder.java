@@ -320,7 +320,19 @@ public class MessageBuilder {
     }
 
     private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
-        String text = "Training is over! Your results: ";
+        String text = "";
+        if (session.getPreviousWord() != null) {
+            //show the answer for previous word
+            Word prevWord = wordService.findById(session.getPreviousWord().getWordId());
+            if (session.getPreviousWord().isRemembered()) {
+                text += "Correct!\n";
+            }
+            else text+= "Incorrect!\n";
+            text += "Answer: \n";
+            text += prevWord.getWordValue() + "\n\n";
+        }
+
+        text += "Training is over! Your results: ";
         text += "\nWords in total: " + session.getFolderSize();
         text += "\nWords Remembered: " + session.getSuccessfulCount();
         double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
@@ -349,20 +361,24 @@ public class MessageBuilder {
 
     public EditMessageText failedSessionMessage(Update update) {
         EditMessageText editMessageText = new EditMessageText();
-        Long chatId;
-        if (update.hasCallbackQuery()) {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-            editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-        }
-        else {
-            chatId = update.getMessage().getChatId();
-            editMessageText.setMessageId(update.getMessage().getMessageId());
-        }
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
         editMessageText.setChatId(chatId.toString());
 
         editMessageText.setText("Sorry, this session is no longer available:(");
+        editMessageText.setReplyMarkup(null);
         return editMessageText;
 
+    }
+
+
+    public SendMessage failedSessionNewMessage(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        sendMessage.setText("Sorry, this session is no longer available:(");
+        return sendMessage;
     }
 
     public SendMessage showTestModeMessage(Update update,
