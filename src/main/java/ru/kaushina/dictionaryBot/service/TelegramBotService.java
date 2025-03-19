@@ -70,6 +70,8 @@ public class TelegramBotService {
         callbackHandlers.put("END REMEMBER", this::endRememberModeCallbackHandler);
         callbackHandlers.put("SHOW ANSWER", this::changeAnswerVisibilityCallbackHandler);
         callbackHandlers.put("HIDE ANSWER", this::changeAnswerVisibilityCallbackHandler);
+        callbackHandlers.put("REMEMBER", this::answerRememberModeHandler);
+        callbackHandlers.put("DO NOT REMEMBER", this::answerRememberModeHandler);
     }
 
 
@@ -273,6 +275,20 @@ public class TelegramBotService {
         EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
         executeEditMessage(message);
     }
+
+
+    private void answerRememberModeHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession session = messageHandler.answerRememberModeHandler(update);
+        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+        executeEditMessage(message);
+        if (session.isOver()) {
+            messageHandler.endRememberModeHandler(update);
+            SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+            executeNewMessage(sendMessage);
+        }
+    }
+
+
 
     private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
         messageSender.executeEditMessageText(editMessage);

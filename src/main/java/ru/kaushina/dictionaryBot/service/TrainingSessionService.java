@@ -26,6 +26,7 @@ public class TrainingSessionService {
         private int wordIndex;
         private int successfulCount;
         private boolean showAnswer;
+        private boolean isOver;
 
         @Data
         @Builder
@@ -64,6 +65,7 @@ public class TrainingSessionService {
                 .wordIndex(0)
                 .successfulCount(0)
                 .showAnswer(false)
+                .isOver(false)
                 .build();
 
         sessions.put(chatId, session);

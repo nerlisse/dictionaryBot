@@ -195,4 +195,17 @@ public class MessageHandler {
         session.setShowAnswer(!session.isShowAnswer());
         return session;
     }
+
+    public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        String callbackData = update.getCallbackQuery().getData();
+        if (callbackData.equals("REMEMBER")) {
+            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
+        }
+        session.setWordIndex(session.getWordIndex() + 1);
+        if (session.getWordIndex() == session.getFolderSize()) session.setOver(true);
+        session.setShowAnswer(false);
+        return session;
+    }
 }

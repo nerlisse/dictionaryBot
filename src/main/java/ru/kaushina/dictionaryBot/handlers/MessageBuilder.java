@@ -272,7 +272,7 @@ public class MessageBuilder {
 
     private String textRememberMode(TrainingSessionService.TrainingSession session) {
         int index = session.getWordIndex();
-        Word word = wordService.findById(session.getWords().getFirst().getWordId());
+        Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
         String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
 
@@ -319,6 +319,16 @@ public class MessageBuilder {
         return sendMessage;
     }
 
+    private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
+        String text = "Training is over! Your results: ";
+        text += "\nWords in total: " + session.getFolderSize();
+        text += "\nWords Remembered: " + session.getSuccessfulCount();
+        text += "\nPercentage of remembered words: " +
+                session.getSuccessfulCount() / session.getFolderSize() * 100 + "%";
+        text += "\n\n Good job! Keep it up!";
+        return text;
+    }
+
     public EditMessageText showRememberModeMessage(Update update,
                                                    TrainingSessionService.TrainingSession session) {
         EditMessageText editMessageText = new EditMessageText();
@@ -326,8 +336,13 @@ public class MessageBuilder {
         editMessageText.setChatId(chatId.toString());
         editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
 
-        editMessageText.setText(textRememberMode(session));
-        editMessageText.setReplyMarkup(markupRememberMode(session));
+        if (!session.isOver()) {
+            editMessageText.setText(textRememberMode(session));
+            editMessageText.setReplyMarkup(markupRememberMode(session));
+        }
+        else {
+            editMessageText.setText(endRememberModeMessage(session));
+        }
 
         return editMessageText;
     }
