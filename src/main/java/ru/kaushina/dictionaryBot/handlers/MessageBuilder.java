@@ -303,7 +303,7 @@ public class MessageBuilder {
         rowsInLine.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("End the practice", "END REMEMBER"));
+        row.add(createButton("End the practice", "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
@@ -311,11 +311,11 @@ public class MessageBuilder {
     }
 
 
-    public SendMessage failedRememberModeMessage(Update update) {
+    public SendMessage failedPlayModeMessage(Update update) {
         SendMessage sendMessage = new SendMessage();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         sendMessage.setChatId(chatId.toString());
-        sendMessage.setText("failed to start remember mode, make sure folder is not empty");
+        sendMessage.setText("failed to start play mode, make sure folder is not empty");
         return sendMessage;
     }
 
@@ -363,5 +363,43 @@ public class MessageBuilder {
         editMessageText.setText("Sorry, this session is no longer available:(");
         return editMessageText;
 
+    }
+
+    public SendMessage startTestModeMessage(Update update,
+                                            TrainingSessionService.TrainingSession session) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        sendMessage.setText(textTestMode(session));
+        sendMessage.setReplyMarkup(markupTestMode(session));
+
+        return sendMessage;
+    }
+
+    private String textTestMode(TrainingSessionService.TrainingSession session) {
+        int index = session.getWordIndex();
+        Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
+
+        String text = "Try to remember what that term means and type it down:" +
+                "\n\n" + word.getWordKey() + "\n\n";
+
+        text += "\nKeep in mind that you have to type in exactly how it was " +
+        "submitted (case-insensitive) \nIf you can't remember, send any message (don't give up tho)\n\n";
+
+        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+        return text;
+    }
+
+    private InlineKeyboardMarkup markupTestMode(TrainingSessionService.TrainingSession session) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        row.add(createButton("End the practice", "END PLAY"));
+        rowsInLine.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInLine);
+        return inlineKeyboardMarkup;
     }
 }

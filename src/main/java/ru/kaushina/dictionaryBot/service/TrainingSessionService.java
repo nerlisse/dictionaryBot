@@ -1,6 +1,5 @@
 package ru.kaushina.dictionaryBot.service;
 
-import com.mysql.cj.Session;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.stereotype.Service;
@@ -41,21 +40,9 @@ public class TrainingSessionService {
         this.folderService = folderService;
     }
 
-    public TrainingSession createRememberSession(Long chatId, Long folderId, String callbackData) {
-        List<Word> words = folderService.getFolderWords(folderId);
-        if (sessions.containsKey(chatId) || words.isEmpty()) {
-            return null;
-        }
-        List<Word> shuffledWords = new ArrayList<>(words);
-        Collections.shuffle(shuffledWords);
+    public TrainingSession createTrainingSession(Long chatId, Long folderId, String callbackData) {
 
-        List<SessionWord> sessionWords = shuffledWords.stream()
-                .map(word -> SessionWord.builder()
-                        .wordId(word.getId())
-                        .remembered(false)
-                        .build())
-                .toList();
-
+        List<SessionWord> sessionWords = shuffleWords(chatId, folderId);
         TrainingSession session = TrainingSession.builder()
                 .chatId(chatId)
                 .folderId(folderId)
@@ -72,9 +59,25 @@ public class TrainingSessionService {
         return session;
     }
 
+    private List<SessionWord> shuffleWords(Long chatId, Long folderId) {
+        List<Word> words = folderService.getFolderWords(folderId);
+        if (sessions.containsKey(chatId) || words.isEmpty()) {
+            return null;
+        }
+        List<Word> shuffledWords = new ArrayList<>(words);
+        Collections.shuffle(shuffledWords);
+
+        List<SessionWord> sessionWords = shuffledWords.stream()
+                .map(word -> SessionWord.builder()
+                        .wordId(word.getId())
+                        .remembered(false)
+                        .build())
+                .toList();
+        return sessionWords;
+    }
 
 
-    public void endRememberSession(Long chatId) {
+    public void endTrainingSession(Long chatId) {
         sessions.remove(chatId);
     }
 

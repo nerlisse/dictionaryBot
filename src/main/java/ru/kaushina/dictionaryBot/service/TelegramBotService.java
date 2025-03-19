@@ -67,11 +67,12 @@ public class TelegramBotService {
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
         callbackHandlers.put("REMEMBER MODE", this::startRememberModeCallbackHandler);
-        callbackHandlers.put("END REMEMBER", this::endRememberModeCallbackHandler);
+        callbackHandlers.put("END PLAY", this::endPlayModeCallbackHandler);
         callbackHandlers.put("SHOW ANSWER", this::changeAnswerVisibilityCallbackHandler);
         callbackHandlers.put("HIDE ANSWER", this::changeAnswerVisibilityCallbackHandler);
         callbackHandlers.put("REMEMBER", this::answerRememberModeHandler);
         callbackHandlers.put("DO NOT REMEMBER", this::answerRememberModeHandler);
+        callbackHandlers.put("TEST MODE", this::startTestModeCallbackHandler);
     }
 
 
@@ -250,21 +251,20 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
-    // КАЖДОМ ДЕЙСТВИИ ПРВКЕРЯТЬ ЕСТЬ ЛИ СЕССИЯ ИНАЧЕ ТЫ ЛОХ
     private void startRememberModeCallbackHandler(Update update) throws TelegramApiException {
-        TrainingSessionService.TrainingSession started = messageHandler.startRememberModeHandler(update);
+        TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
         SendMessage sendMessage;
         if (started != null) {
             sendMessage = messageBuilder.startRememberModeMessage(update, started);
         }
         else {
-            sendMessage = messageBuilder.failedRememberModeMessage(update);
+            sendMessage = messageBuilder.failedPlayModeMessage(update);
         }
         executeNewMessage(sendMessage);
     }
 
-    private void endRememberModeCallbackHandler(Update update) throws TelegramApiException {
-        messageHandler.endRememberModeHandler(update);
+    private void endPlayModeCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.endPlayModeHandler(update);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
@@ -295,7 +295,7 @@ public class TelegramBotService {
             EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
             executeEditMessage(message);
             if (session.isOver()) {
-                messageHandler.endRememberModeHandler(update);
+                messageHandler.endPlayModeHandler(update);
                 SendMessage sendMessage = messageBuilder.folderShowMessage(update);
                 executeNewMessage(sendMessage);
             }
@@ -306,6 +306,18 @@ public class TelegramBotService {
 
     }
 
+
+    private void startTestModeCallbackHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
+        SendMessage sendMessage;
+        if (started != null) {
+            sendMessage = messageBuilder.startTestModeMessage(update, started);
+        }
+        else {
+            sendMessage = messageBuilder.failedPlayModeMessage(update);
+        }
+        executeNewMessage(sendMessage);
+    }
 
 
     private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
