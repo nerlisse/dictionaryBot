@@ -4,13 +4,16 @@ package ru.kaushina.dictionaryBot.handlers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
+import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.WordService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,10 +25,12 @@ public class MessageBuilder {
 
     private final UserService userService;
     private final FolderService folderService;
+    private final WordService wordService;
 
-    public MessageBuilder(UserService userService, FolderService folderService) {
+    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService) {
         this.userService = userService;
         this.folderService = folderService;
+        this.wordService = wordService;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -149,6 +154,11 @@ public class MessageBuilder {
         rowsInline.add(row);
 
         row = new ArrayList<>();
+        row.add(createButton("Remember mode", "REMEMBER MODE"));
+        row.add(createButton("Test mode", "TEST MODE"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
         // button for home screen
         row.add(createButton("Go back", "HOME"));
 
@@ -247,5 +257,93 @@ public class MessageBuilder {
             message.setText("Couldn't delete word: no such key");
         }
         return message;
+    }
+
+    public SendMessage startRememberModeMessage(Update update,
+                                                TrainingSessionService.TrainingSession session) {
+        SendMessage message = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        message.setChatId(chatId.toString());
+
+        message.setText(textRememberMode(session));
+        message.setReplyMarkup(markupRememberMode(session));
+        return message;
+    }
+
+    private String textRememberMode(TrainingSessionService.TrainingSession session) {
+        int index = session.getWordIndex();
+        Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
+
+        String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
+
+        if (session.isShowAnswer()) {
+            text += "Answer:\n" + word.getWordValue() + "\n\n";
+        }
+
+        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+
+        return text;
+    }
+
+    private InlineKeyboardMarkup markupRememberMode(TrainingSessionService.TrainingSession session) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(createButton("I remember", "REMEMBER"));
+        row.add(createButton("I do not remember", "DO NOT REMEMBER"));
+        rowsInLine.add(row);
+        row = new ArrayList<>();
+        if (session.isShowAnswer()) {
+            row.add(createButton("Hide the answer", "SHOW ANSWER"));
+        }
+        else {
+            row.add(createButton("Show the answer", "HIDE ANSWER"));
+        }
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("End the practice", "END REMEMBER"));
+        rowsInLine.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInLine);
+        return inlineKeyboardMarkup;
+    }
+
+
+    public SendMessage failedRememberModeMessage(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+        sendMessage.setText("failed to start remember mode, make sure folder is not empty");
+        return sendMessage;
+    }
+
+    private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
+        String text = "Training is over! Your results: ";
+        text += "\nWords in total: " + session.getFolderSize();
+        text += "\nWords Remembered: " + session.getSuccessfulCount();
+        double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
+        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
+        text += "\n\n Good job! Keep it up!";
+        return text;
+    }
+
+    public EditMessageText showRememberModeMessage(Update update,
+                                                   TrainingSessionService.TrainingSession session) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+
+        if (!session.isOver()) {
+            editMessageText.setText(textRememberMode(session));
+            editMessageText.setReplyMarkup(markupRememberMode(session));
+        }
+        else {
+            editMessageText.setText(endRememberModeMessage(session));
+        }
+
+        return editMessageText;
     }
 }

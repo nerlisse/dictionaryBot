@@ -1,6 +1,7 @@
 package ru.kaushina.dictionaryBot.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
@@ -21,6 +22,7 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    @Cacheable(value="users", key="#chatId")
     public User findByChatId(Long chatId) {
         return userRepository.findByChatId(chatId);
     }

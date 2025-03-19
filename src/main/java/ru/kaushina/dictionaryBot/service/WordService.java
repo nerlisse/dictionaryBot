@@ -43,4 +43,8 @@ public class WordService {
         return true;
     }
 
+    public Word findById(Long wordId) {
+        return wordRepository.findById(wordId).orElse(null);
+    }
+
 }

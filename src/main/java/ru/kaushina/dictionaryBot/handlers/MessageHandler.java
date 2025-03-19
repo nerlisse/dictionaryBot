@@ -8,6 +8,7 @@ import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
+import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
 
@@ -20,11 +21,13 @@ public class MessageHandler {
     private final UserService userService;
     private final FolderService folderService;
     private final WordService wordService;
+    private final TrainingSessionService trainingSessionService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
+        this.trainingSessionService = trainingSessionService;
     }
 
     //pressing start command
@@ -34,6 +37,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         userService.setCurrentWordKey(chatId, null);
+        trainingSessionService.endRememberSession(chatId);
     }
 
     public void homeHandler(Update update) {
@@ -159,5 +163,49 @@ public class MessageHandler {
         boolean deleted = wordService.deleteWord(word, folderId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         return deleted;
+    }
+
+    public TrainingSessionService.TrainingSession startRememberModeHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        String callbackData = update.getCallbackQuery().getData();
+        TrainingSessionService.TrainingSession started = trainingSessionService
+                .createRememberSession(chatId, folderId, callbackData);
+        if (started != null) {
+            userService.setUserState(chatId, UserState.REMEMBER_MODE);
+        }
+        return started;
+    }
+
+    public void endRememberModeHandler(Update update) {
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        }
+        else {
+            chatId = update.getMessage().getChatId();
+        }
+        trainingSessionService.endRememberSession(chatId);
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+    }
+
+    public TrainingSessionService.TrainingSession changeAnswerHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        session.setShowAnswer(!session.isShowAnswer());
+        return session;
+    }
+
+    public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
+        String callbackData = update.getCallbackQuery().getData();
+        if (callbackData.equals("REMEMBER")) {
+            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
+        }
+        session.setWordIndex(session.getWordIndex() + 1);
+        if (session.getWordIndex() == session.getFolderSize()) session.setOver(true);
+        session.setShowAnswer(false);
+        return session;
     }
 }
