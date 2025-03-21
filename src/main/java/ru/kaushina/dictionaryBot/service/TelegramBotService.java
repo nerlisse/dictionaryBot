@@ -272,6 +272,7 @@ public class TelegramBotService {
     }
 
     private void failedCallbackSessionHandler(Update update) throws TelegramApiException {
+        messageHandler.endPlayModeHandler(update);
         EditMessageText message = messageBuilder.failedSessionMessage(update);
         executeEditMessage(message);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);

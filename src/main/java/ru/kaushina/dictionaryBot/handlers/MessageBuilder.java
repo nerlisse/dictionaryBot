@@ -448,6 +448,21 @@ public class MessageBuilder {
 
         text += "Click on what you would like to see.\n";
         editMessageText.setText(text);
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        row.add(createButton("Change to term", "SHOW KEY"));
+        row.add(createButton("Change to meaning", "SHOW VALUE"));
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("Go back", "SHOW FOLDER"));
+        rowsInLine.add(row);
+
+        markup.setKeyboard(rowsInLine);
+        editMessageText.setReplyMarkup(markup);
         return editMessageText;
     }
 }
