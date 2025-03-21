@@ -206,7 +206,6 @@ public class MessageHandler {
 
     public ShowMode settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        ShowMode mode = userService.changeSetting(chatId, update.getCallbackQuery().getData());
-        return mode;
+        return userService.changeSetting(chatId, update.getCallbackQuery().getData());
     }
 }

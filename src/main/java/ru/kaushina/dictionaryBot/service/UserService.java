@@ -117,4 +117,9 @@ public class UserService {
         userRepository.save(user);
         return user.getSetting();
     }
+
+    public ShowMode getShowMode(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getSetting();
+    }
 }

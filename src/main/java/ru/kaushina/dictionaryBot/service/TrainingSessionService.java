@@ -3,6 +3,7 @@ package ru.kaushina.dictionaryBot.service;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.stereotype.Service;
+import ru.kaushina.dictionaryBot.model.ShowMode;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService.TrainingSession.SessionWord;
 
@@ -14,6 +15,7 @@ public class TrainingSessionService {
     private final Map<Long, TrainingSession> sessions;
     private final FolderService folderService;
     private final WordService wordService;
+    private final UserService userService;
 
     @Data
     @Builder
@@ -23,6 +25,7 @@ public class TrainingSessionService {
         private Long chatId;
         private List<SessionWord> words;
         private SessionWord previousWord;
+        private ShowMode showMode;
         private int folderSize;
         private int wordIndex;
         private int successfulCount;
@@ -37,10 +40,11 @@ public class TrainingSessionService {
         }
     }
 
-    public TrainingSessionService(FolderService folderService, WordService wordService) {
+    public TrainingSessionService(FolderService folderService, WordService wordService, UserService userService) {
         sessions = new HashMap<>();
         this.folderService = folderService;
         this.wordService = wordService;
+        this.userService = userService;
     }
 
     public TrainingSession createTrainingSession(Long chatId, Long folderId, String callbackData) {
@@ -54,6 +58,7 @@ public class TrainingSessionService {
                 .folderSize(sessionWords.size())
                 .words(sessionWords)
                 .previousWord(null)
+                .showMode(userService.getShowMode(chatId))
                 .wordIndex(0)
                 .successfulCount(0)
                 .showAnswer(false)
@@ -107,7 +112,13 @@ public class TrainingSessionService {
         if (session == null) return null;
         SessionWord wordId = session.getWords().get(session.getWordIndex());
         Word word = wordService.findById(wordId.getWordId());
-        String wordValue = word.getWordValue();
+        String wordValue;
+        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
+            wordValue = word.getWordValue();
+        }
+        else {
+            wordValue = word.getWordKey();
+        }
         if (message.equalsIgnoreCase(wordValue)) {
             session.setSuccessfulCount(session.getSuccessfulCount() + 1);
             wordId.setRemembered(true);

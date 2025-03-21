@@ -282,10 +282,19 @@ public class MessageBuilder {
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
+        String wordKey, wordValue;
+        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
+            wordKey = word.getWordKey();
+            wordValue = word.getWordValue();
+        }
+        else {
+            wordKey = word.getWordValue();
+            wordValue = word.getWordKey();
+        }
+        String text = "Do you remember that word?\n\n" + wordKey + "\n\n";
 
         if (session.isShowAnswer()) {
-            text += "Answer:\n" + word.getWordValue() + "\n\n";
+            text += "Answer:\n" + wordValue + "\n\n";
         }
 
         text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
@@ -337,7 +346,8 @@ public class MessageBuilder {
             }
             else text+= "Incorrect!\n";
             text += "Answer: \n";
-            text += prevWord.getWordValue() + "\n\n";
+            text += (session.getShowMode().equals(ShowMode.SHOW_KEY) ?
+                    prevWord.getWordValue() : prevWord.getWordKey()) + "\n\n";
         }
         return text;
     }
@@ -415,8 +425,13 @@ public class MessageBuilder {
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        text += "Try to remember what that term means and type it down:" +
-                "\n\n" + word.getWordKey() + "\n\n";
+        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
+            text += "Try to remember what that term means and type it down:" +
+                    "\n\n" + word.getWordKey() + "\n\n";
+        } else {
+            text += "Try to remember what that definition refers to and type it down:" +
+                    "\n\n" + word.getWordKey() + "\n\n";
+        }
 
         text += "\nKeep in mind that you have to type in exactly how it was " +
         "submitted (case-insensitive) \nIf you can't remember, send any message (don't give up tho)\n\n";
