@@ -193,7 +193,7 @@ public class MessageBuilder {
         SendMessage message = new SendMessage();
         Long chatId = update.getMessage().getChatId();
         message.setChatId(chatId.toString());
-        String text = "failed to add word, too long. Enter valid name: ";
+        String text = "failed to add word, too long. Enter valid value: ";
         message.setText(text);
         return message;
     }
@@ -239,8 +239,8 @@ public class MessageBuilder {
             sendMessage.setText("Word created");
         }
         else {
-            sendMessage.setText("Couldn't create word. Perhaps, entered key already exists in this folder or you" +
-                    "entered empty values :(");
+            sendMessage.setText("Couldn't create word. Check if the value's aren't too long, are not empty, or" +
+                    "session was not over :(");
         }
         return sendMessage;
     }

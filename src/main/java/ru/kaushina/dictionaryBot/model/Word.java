@@ -13,7 +13,9 @@ public class Word {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length=1000)
     private String wordKey;
+    @Column(length=1000)
     private String wordValue;
 
     @ManyToOne

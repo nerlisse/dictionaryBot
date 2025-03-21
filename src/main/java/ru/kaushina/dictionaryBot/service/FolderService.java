@@ -10,9 +10,7 @@ import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.repository.FolderRepository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -90,4 +88,5 @@ public class FolderService {
         Folder folder = folderRepository.findById(folderId).orElse(null);
         return new ArrayList<>(folder.getWords());
     }
+
 }

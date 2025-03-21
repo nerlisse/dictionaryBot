@@ -26,9 +26,6 @@ public class User {
 
     private Long currentFolderId;
 
-    @Column(length=1000)
-    private String currentWordKey;
-
     @Enumerated(EnumType.STRING)
     private ShowMode setting;
 
