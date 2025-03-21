@@ -81,9 +81,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void setCurrentFolderId(Long chatId, Long folderId) {
+    public void setCurrentFolderId(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
-        user.setCurrentFolderId(folderId);
+        if (user.getCurrentFolderId() == null) {
+            user.setCurrentFolderId(Long.valueOf(callback.substring(12)));
+        }
+        log.info("Showing folder {} to user {}", user.getCurrentFolderId(), chatId);
         userRepository.save(user);
     }
 

@@ -89,9 +89,8 @@ public class MessageHandler {
 
     public void showFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        log.info("Showing folder {} to user {}", update.getCallbackQuery().getData() ,chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
-        userService.setCurrentFolderId(chatId, Long.valueOf(update.getCallbackQuery().getData().substring(12)));
+        userService.setCurrentFolderId(chatId, update.getCallbackQuery().getData());
     }
 
 
@@ -108,8 +107,6 @@ public class MessageHandler {
     //user asked to add word, can't resist
     public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = userService.getCurrentFolderId(chatId);
-        userService.setCurrentFolderId(chatId, folderId);
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 
