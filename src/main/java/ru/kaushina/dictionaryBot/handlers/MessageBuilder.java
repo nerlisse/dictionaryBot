@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.ShowMode;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
@@ -436,4 +437,17 @@ public class MessageBuilder {
         return inlineKeyboardMarkup;
     }
 
+    public EditMessageText settingsMessage(ShowMode setting, Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+
+        String text = "Here you can choose whether you want terms to show in play modes or their meanings.\n";
+        text += "Current setting: " + (setting.equals(ShowMode.SHOW_KEY) ? "term" : "meaning") + "\n";
+
+        text += "Click on what you would like to see.\n";
+        editMessageText.setText(text);
+        return editMessageText;
+    }
 }

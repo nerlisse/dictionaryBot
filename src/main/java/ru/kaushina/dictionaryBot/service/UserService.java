@@ -61,6 +61,7 @@ public class UserService {
         user.setFirstName(chat.getFirstName());
         user.setLastName(chat.getLastName());
         user.setUsername(chat.getUserName());
+        user.setSetting(ShowMode.SHOW_KEY);
 
         user.setUserState(UserState.MAIN_MENU);
         user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));

@@ -3,6 +3,7 @@ package ru.kaushina.dictionaryBot.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 
 import java.sql.Timestamp;
 
@@ -27,6 +28,8 @@ public class User {
 
     @Column(length=1000)
     private String currentWordKey;
+
+    @Enumerated(EnumType.STRING)
     private ShowMode setting;
 
     private Timestamp registeredAt;
