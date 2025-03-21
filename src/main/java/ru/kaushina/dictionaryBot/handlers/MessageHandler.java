@@ -12,6 +12,7 @@ import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Slf4j
@@ -37,7 +38,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         userService.setCurrentWordKey(chatId, null);
-        trainingSessionService.endRememberSession(chatId);
+        trainingSessionService.endTrainingSession(chatId);
     }
 
     public void homeHandler(Update update) {
@@ -165,19 +166,20 @@ public class MessageHandler {
         return deleted;
     }
 
-    public TrainingSessionService.TrainingSession startRememberModeHandler(Update update) {
+    public TrainingSessionService.TrainingSession startPlayModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
         String callbackData = update.getCallbackQuery().getData();
         TrainingSessionService.TrainingSession started = trainingSessionService
-                .createRememberSession(chatId, folderId, callbackData);
+                .createTrainingSession(chatId, folderId, callbackData);
         if (started != null) {
-            userService.setUserState(chatId, UserState.REMEMBER_MODE);
+            userService.setUserState(chatId,
+                    (callbackData.equals("REMEMBER MODE") ? UserState.REMEMBER_MODE : UserState.TEST_MODE));
         }
         return started;
     }
 
-    public void endRememberModeHandler(Update update) {
+    public void endPlayModeHandler(Update update) {
         Long chatId;
         if (update.hasCallbackQuery()) {
             chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -185,27 +187,26 @@ public class MessageHandler {
         else {
             chatId = update.getMessage().getChatId();
         }
-        trainingSessionService.endRememberSession(chatId);
+        trainingSessionService.endTrainingSession(chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
     }
 
     public TrainingSessionService.TrainingSession changeAnswerHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
-        session.setShowAnswer(!session.isShowAnswer());
+        if (session!=null) session.setShowAnswer(!session.isShowAnswer());
         return session;
     }
 
     public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
         String callbackData = update.getCallbackQuery().getData();
-        if (callbackData.equals("REMEMBER")) {
-            session.setSuccessfulCount(session.getSuccessfulCount() + 1);
-        }
-        session.setWordIndex(session.getWordIndex() + 1);
-        if (session.getWordIndex() == session.getFolderSize()) session.setOver(true);
-        session.setShowAnswer(false);
-        return session;
+        return trainingSessionService.answerRememberMode(chatId, callbackData);
+    }
+
+    public TrainingSessionService.TrainingSession answerTestModeHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        String message = update.getMessage().getText();
+        return trainingSessionService.answerTestMode(chatId, message);
     }
 }

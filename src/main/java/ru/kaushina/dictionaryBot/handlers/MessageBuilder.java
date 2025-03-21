@@ -26,11 +26,13 @@ public class MessageBuilder {
     private final UserService userService;
     private final FolderService folderService;
     private final WordService wordService;
+    private final TrainingSessionService trainingSessionService;
 
-    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService) {
+    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, TrainingSessionService trainingSessionService1) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
+        this.trainingSessionService = trainingSessionService1;
     }
 
     public SendMessage getHomeMessage(Update update) {
@@ -303,7 +305,7 @@ public class MessageBuilder {
         rowsInLine.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("End the practice", "END REMEMBER"));
+        row.add(createButton("End the practice", "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
@@ -311,21 +313,32 @@ public class MessageBuilder {
     }
 
 
-    public SendMessage failedRememberModeMessage(Update update) {
+    public SendMessage failedPlayModeMessage(Update update) {
         SendMessage sendMessage = new SendMessage();
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         sendMessage.setChatId(chatId.toString());
-        sendMessage.setText("failed to start remember mode, make sure folder is not empty");
+        sendMessage.setText("failed to start play mode, make sure folder is not empty");
         return sendMessage;
     }
 
+    private String showPreviousAnswer(TrainingSessionService.TrainingSession session) {
+        String text = "";
+        if (session.getPreviousWord() != null) {
+            //show the answer for previous word
+            Word prevWord = wordService.findById(session.getPreviousWord().getWordId());
+            if (session.getPreviousWord().isRemembered()) {
+                text += "Correct!\n";
+            }
+            else text+= "Incorrect!\n";
+            text += "Answer: \n";
+            text += prevWord.getWordValue() + "\n\n";
+        }
+        return text;
+    }
+
     private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
-        String text = "Training is over! Your results: ";
-        text += "\nWords in total: " + session.getFolderSize();
-        text += "\nWords Remembered: " + session.getSuccessfulCount();
-        double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
-        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
-        text += "\n\n Good job! Keep it up!";
+        String text = showPreviousAnswer(session);
+        text += trainingSessionService.getStatistics(session);
         return text;
     }
 
@@ -346,4 +359,76 @@ public class MessageBuilder {
 
         return editMessageText;
     }
+
+    public EditMessageText failedSessionMessage(Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        editMessageText.setChatId(chatId.toString());
+
+        editMessageText.setText("Sorry, this session is no longer available:(");
+        editMessageText.setReplyMarkup(null);
+        return editMessageText;
+
+    }
+
+
+    public SendMessage failedSessionNewMessage(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        sendMessage.setText("Sorry, this session is no longer available:(");
+        return sendMessage;
+    }
+
+    public SendMessage showTestModeMessage(Update update,
+                                           TrainingSessionService.TrainingSession session) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else
+            chatId = update.getMessage().getChatId();
+        sendMessage.setChatId(chatId.toString());
+
+        if (!session.isOver()) {
+            sendMessage.setText(textTestMode(session));
+            sendMessage.setReplyMarkup(markupTestMode(session));
+        } else {
+            sendMessage.setText(endRememberModeMessage(session));
+        }
+
+        return sendMessage;
+    }
+
+    private String textTestMode(TrainingSessionService.TrainingSession session) {
+
+        String text = showPreviousAnswer(session);
+
+        int index = session.getWordIndex();
+        Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
+
+        text += "Try to remember what that term means and type it down:" +
+                "\n\n" + word.getWordKey() + "\n\n";
+
+        text += "\nKeep in mind that you have to type in exactly how it was " +
+        "submitted (case-insensitive) \nIf you can't remember, send any message (don't give up tho)\n\n";
+
+        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+        return text;
+    }
+
+    private InlineKeyboardMarkup markupTestMode(TrainingSessionService.TrainingSession session) {
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        row.add(createButton("End the practice", "END PLAY"));
+        rowsInLine.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInLine);
+        return inlineKeyboardMarkup;
+    }
+
 }

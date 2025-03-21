@@ -43,8 +43,6 @@ public class TelegramBotService {
 
     private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
     private final Map<String, CheckedConsumer<Update>> callbackHandlers;
-    @Autowired
-    private TrainingSessionService trainingSessionService;
 
 
     public TelegramBotService(BotConfig config) {
@@ -57,6 +55,7 @@ public class TelegramBotService {
         stateHandlers.put(UserState.ADD_KEY, this::addKeyHandler);
         stateHandlers.put(UserState.ADD_VALUE, this::addValueHandler);
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
+        stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
 
         this.callbackHandlers = new HashMap<>();
         callbackHandlers.put("HOME", this::homeCallbackHandler);
@@ -67,13 +66,13 @@ public class TelegramBotService {
         callbackHandlers.put("SHOW WORDS", this::showWordsCallbackHandler);
         callbackHandlers.put("DELETE WORD", this::deleteWordCallbackHandler);
         callbackHandlers.put("REMEMBER MODE", this::startRememberModeCallbackHandler);
-        callbackHandlers.put("END REMEMBER", this::endRememberModeCallbackHandler);
+        callbackHandlers.put("END PLAY", this::endPlayModeCallbackHandler);
         callbackHandlers.put("SHOW ANSWER", this::changeAnswerVisibilityCallbackHandler);
         callbackHandlers.put("HIDE ANSWER", this::changeAnswerVisibilityCallbackHandler);
         callbackHandlers.put("REMEMBER", this::answerRememberModeHandler);
         callbackHandlers.put("DO NOT REMEMBER", this::answerRememberModeHandler);
+        callbackHandlers.put("TEST MODE", this::startTestModeCallbackHandler);
     }
-
 
     // обработка обновлений
     public void handleUpdate(Update update) throws TelegramApiException {
@@ -92,6 +91,10 @@ public class TelegramBotService {
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
         Message sentMessage = messageSender.executeMessage(sendMessage);
         userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
+    }
+
+    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
+        messageSender.executeEditMessageText(editMessage);
     }
 
     private void handleTextMessage(Update update) throws TelegramApiException {
@@ -250,21 +253,27 @@ public class TelegramBotService {
         executeNewMessage(sendMessage);
     }
 
-    // КАЖДОМ ДЕЙСТВИИ ПРВКЕРЯТЬ ЕСТЬ ЛИ СЕССИЯ ИНАЧЕ ТЫ ЛОХ
     private void startRememberModeCallbackHandler(Update update) throws TelegramApiException {
-        TrainingSessionService.TrainingSession started = messageHandler.startRememberModeHandler(update);
+        TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
         SendMessage sendMessage;
         if (started != null) {
             sendMessage = messageBuilder.startRememberModeMessage(update, started);
         }
         else {
-            sendMessage = messageBuilder.failedRememberModeMessage(update);
+            sendMessage = messageBuilder.failedPlayModeMessage(update);
         }
         executeNewMessage(sendMessage);
     }
 
-    private void endRememberModeCallbackHandler(Update update) throws TelegramApiException {
-        messageHandler.endRememberModeHandler(update);
+    private void endPlayModeCallbackHandler(Update update) throws TelegramApiException {
+        messageHandler.endPlayModeHandler(update);
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
+    }
+
+    private void failedCallbackSessionHandler(Update update) throws TelegramApiException {
+        EditMessageText message = messageBuilder.failedSessionMessage(update);
+        executeEditMessage(message);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
@@ -272,26 +281,69 @@ public class TelegramBotService {
 
     private void changeAnswerVisibilityCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.changeAnswerHandler(update);
-        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
-        executeEditMessage(message);
+        if (session != null) {
+            EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+            executeEditMessage(message);
+        }
+        else {
+            failedCallbackSessionHandler(update);
+        }
     }
 
 
     private void answerRememberModeHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.answerRememberModeHandler(update);
-        EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
-        executeEditMessage(message);
-        if (session.isOver()) {
-            messageHandler.endRememberModeHandler(update);
-            SendMessage sendMessage = messageBuilder.folderShowMessage(update);
-            executeNewMessage(sendMessage);
+        if (session != null) {
+            EditMessageText message = messageBuilder.showRememberModeMessage(update, session);
+            executeEditMessage(message);
+            if (session.isOver()) {
+                messageHandler.endPlayModeHandler(update);
+                SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+                executeNewMessage(sendMessage);
+            }
         }
+        else {
+            failedCallbackSessionHandler(update);
+        }
+
     }
 
 
+    private void startTestModeCallbackHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
+        SendMessage sendMessage;
+        if (started != null) {
+            sendMessage = messageBuilder.showTestModeMessage(update, started);
+        }
+        else {
+            sendMessage = messageBuilder.failedPlayModeMessage(update);
+        }
+        executeNewMessage(sendMessage);
+    }
 
-    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
-        messageSender.executeEditMessageText(editMessage);
+
+    private void answerTestModeHandler(Update update) throws TelegramApiException {
+        TrainingSessionService.TrainingSession session = messageHandler.answerTestModeHandler(update);
+        if (session == null) {
+            failedMessageSessionHandler(update);
+        }
+        else {
+            SendMessage sendMessage = messageBuilder.showTestModeMessage(update, session);
+            executeNewMessage(sendMessage);
+            if (session.isOver()) {
+                messageHandler.endPlayModeHandler(update);
+                sendMessage = messageBuilder.folderShowMessage(update);
+                executeNewMessage(sendMessage);
+            }
+        }
+    }
+
+    private void failedMessageSessionHandler(Update update) throws TelegramApiException {
+        SendMessage message = messageBuilder.failedSessionNewMessage(update);
+        executeNewMessage(message);
+
+        SendMessage sendMessage = messageBuilder.folderShowMessage(update);
+        executeNewMessage(sendMessage);
     }
 
 }
