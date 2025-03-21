@@ -3,7 +3,8 @@ package ru.kaushina.dictionaryBot.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
+import ru.kaushina.dictionaryBot.model.enums.ShowMode;
+import ru.kaushina.dictionaryBot.model.enums.UserState;
 
 import java.sql.Timestamp;
 

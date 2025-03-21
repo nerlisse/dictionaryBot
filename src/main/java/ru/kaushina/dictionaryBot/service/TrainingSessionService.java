@@ -3,8 +3,9 @@ package ru.kaushina.dictionaryBot.service;
 import lombok.Builder;
 import lombok.Data;
 import org.springframework.stereotype.Service;
-import ru.kaushina.dictionaryBot.model.ShowMode;
+import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.Word;
+import ru.kaushina.dictionaryBot.model.enums.TrainingMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService.TrainingSession.SessionWord;
 
 import java.util.*;

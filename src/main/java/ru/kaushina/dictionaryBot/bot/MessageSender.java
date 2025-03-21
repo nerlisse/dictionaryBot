@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.service;
+package ru.kaushina.dictionaryBot.bot;
 
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;

@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.model;
+package ru.kaushina.dictionaryBot.model.enums;
 
 public enum UserState {
     MAIN_MENU,

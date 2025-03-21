@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.service;
+package ru.kaushina.dictionaryBot.model.enums;
 
 public enum TrainingMode {
     REMEMBER_MODE,

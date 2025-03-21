@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.handlers.MessageHandler;
 import ru.kaushina.dictionaryBot.model.*;
@@ -15,6 +16,9 @@ import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
+import ru.kaushina.dictionaryBot.model.enums.ShowMode;
+import ru.kaushina.dictionaryBot.model.enums.UserState;
+import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
 
 import java.util.HashMap;
 import java.util.Map;
