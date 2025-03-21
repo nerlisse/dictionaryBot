@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.ShowMode;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
@@ -151,14 +152,19 @@ public class MessageBuilder {
         row = new ArrayList<>();
         //button for showing all words
         row.add(createButton("Show all words", "SHOW WORDS"));
-        // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         row.add(createButton("Remember mode", "REMEMBER MODE"));
         row.add(createButton("Test mode", "TEST MODE"));
         rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("Settings", "SETTINGS"));
+        // button for deleting the folder
+        row.add(createButton("Delete folder", "DELETE FOLDER"));
+        rowsInline.add(row);
+
 
         row = new ArrayList<>();
         // button for home screen
@@ -276,10 +282,19 @@ public class MessageBuilder {
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        String text = "Do you remember that word?\n\n" + word.getWordKey() + "\n\n";
+        String wordKey, wordValue;
+        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
+            wordKey = word.getWordKey();
+            wordValue = word.getWordValue();
+        }
+        else {
+            wordKey = word.getWordValue();
+            wordValue = word.getWordKey();
+        }
+        String text = "Do you remember that word?\n\n" + wordKey + "\n\n";
 
         if (session.isShowAnswer()) {
-            text += "Answer:\n" + word.getWordValue() + "\n\n";
+            text += "Answer:\n" + wordValue + "\n\n";
         }
 
         text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
@@ -331,7 +346,8 @@ public class MessageBuilder {
             }
             else text+= "Incorrect!\n";
             text += "Answer: \n";
-            text += prevWord.getWordValue() + "\n\n";
+            text += (session.getShowMode().equals(ShowMode.SHOW_KEY) ?
+                    prevWord.getWordValue() : prevWord.getWordKey()) + "\n\n";
         }
         return text;
     }
@@ -409,8 +425,13 @@ public class MessageBuilder {
         int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        text += "Try to remember what that term means and type it down:" +
-                "\n\n" + word.getWordKey() + "\n\n";
+        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
+            text += "Try to remember what that term means and type it down:" +
+                    "\n\n" + word.getWordKey() + "\n\n";
+        } else {
+            text += "Try to remember what that definition refers to and type it down:" +
+                    "\n\n" + word.getWordKey() + "\n\n";
+        }
 
         text += "\nKeep in mind that you have to type in exactly how it was " +
         "submitted (case-insensitive) \nIf you can't remember, send any message (don't give up tho)\n\n";
@@ -431,4 +452,32 @@ public class MessageBuilder {
         return inlineKeyboardMarkup;
     }
 
+    public EditMessageText settingsMessage(ShowMode setting, Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        editMessageText.setChatId(chatId.toString());
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+
+        String text = "Here you can choose whether you want terms to show in play modes or their meanings.\n";
+        text += "Current setting: " + (setting.equals(ShowMode.SHOW_KEY) ? "term" : "meaning") + "\n";
+
+        text += "Click on what you would like to see.\n";
+        editMessageText.setText(text);
+
+        InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+
+        row.add(createButton("Change to term", "SHOW KEY"));
+        row.add(createButton("Change to meaning", "SHOW VALUE"));
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("Go back", "SHOW FOLDER"));
+        rowsInLine.add(row);
+
+        markup.setKeyboard(rowsInLine);
+        editMessageText.setReplyMarkup(markup);
+        return editMessageText;
+    }
 }

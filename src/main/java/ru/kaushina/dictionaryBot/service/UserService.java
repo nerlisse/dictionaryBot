@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.kaushina.dictionaryBot.model.ShowMode;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.UserRepository;
@@ -60,6 +61,7 @@ public class UserService {
         user.setFirstName(chat.getFirstName());
         user.setLastName(chat.getLastName());
         user.setUsername(chat.getUserName());
+        user.setSetting(ShowMode.SHOW_KEY);
 
         user.setUserState(UserState.MAIN_MENU);
         user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
@@ -79,9 +81,12 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void setCurrentFolderId(Long chatId, Long folderId) {
+    public void setCurrentFolderId(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
-        user.setCurrentFolderId(folderId);
+        if (user.getCurrentFolderId() == null) {
+            user.setCurrentFolderId(Long.valueOf(callback.substring(12)));
+        }
+        log.info("Showing folder {} to user {}", user.getCurrentFolderId(), chatId);
         userRepository.save(user);
     }
 
@@ -99,5 +104,22 @@ public class UserService {
     public String getCurrentWordKey(Long chatId) {
         User user = userRepository.findByChatId(chatId);
         return user.getCurrentWordKey();
+    }
+
+    public ShowMode changeSetting(Long chatId, String callback) {
+        User user = userRepository.findByChatId(chatId);
+        if (callback.equals("SHOW KEY")) {
+            user.setSetting(ShowMode.SHOW_KEY);
+        }
+        else if (callback.equals("SHOW VALUE")) {
+            user.setSetting(ShowMode.SHOW_VALUE);
+        }
+        userRepository.save(user);
+        return user.getSetting();
+    }
+
+    public ShowMode getShowMode(Long chatId) {
+        User user = userRepository.findByChatId(chatId);
+        return user.getSetting();
     }
 }

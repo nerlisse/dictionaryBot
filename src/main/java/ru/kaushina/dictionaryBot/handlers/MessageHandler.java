@@ -3,10 +3,7 @@ package ru.kaushina.dictionaryBot.handlers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.kaushina.dictionaryBot.model.User;
-import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.UserState;
-import ru.kaushina.dictionaryBot.model.Word;
+import ru.kaushina.dictionaryBot.model.*;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -92,9 +89,8 @@ public class MessageHandler {
 
     public void showFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        log.info("Showing folder {} to user {}", update.getCallbackQuery().getData().substring(12) ,chatId);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
-        userService.setCurrentFolderId(chatId, Long.valueOf(update.getCallbackQuery().getData().substring(12)));
+        userService.setCurrentFolderId(chatId, update.getCallbackQuery().getData());
     }
 
 
@@ -111,8 +107,6 @@ public class MessageHandler {
     //user asked to add word, can't resist
     public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Long folderId = userService.getCurrentFolderId(chatId);
-        userService.setCurrentFolderId(chatId, folderId);
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 
@@ -208,5 +202,10 @@ public class MessageHandler {
         Long chatId = update.getMessage().getChatId();
         String message = update.getMessage().getText();
         return trainingSessionService.answerTestMode(chatId, message);
+    }
+
+    public ShowMode settingsHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        return userService.changeSetting(chatId, update.getCallbackQuery().getData());
     }
 }
