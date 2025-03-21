@@ -151,14 +151,19 @@ public class MessageBuilder {
         row = new ArrayList<>();
         //button for showing all words
         row.add(createButton("Show all words", "SHOW WORDS"));
-        // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         row.add(createButton("Remember mode", "REMEMBER MODE"));
         row.add(createButton("Test mode", "TEST MODE"));
         rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton("Settings", "SETTINGS"));
+        // button for deleting the folder
+        row.add(createButton("Delete folder", "DELETE FOLDER"));
+        rowsInline.add(row);
+
 
         row = new ArrayList<>();
         // button for home screen

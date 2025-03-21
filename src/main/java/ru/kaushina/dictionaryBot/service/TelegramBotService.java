@@ -10,14 +10,11 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.handlers.MessageHandler;
-import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.User;
-import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.*;
 import lombok.Setter;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
-import ru.kaushina.dictionaryBot.model.Word;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -72,6 +69,9 @@ public class TelegramBotService {
         callbackHandlers.put("REMEMBER", this::answerRememberModeHandler);
         callbackHandlers.put("DO NOT REMEMBER", this::answerRememberModeHandler);
         callbackHandlers.put("TEST MODE", this::startTestModeCallbackHandler);
+        callbackHandlers.put("SETTINGS", this::settingsCallbackHandler);
+        callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
+        callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
     }
 
     // обработка обновлений
@@ -345,5 +345,19 @@ public class TelegramBotService {
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
+
+
+    private void settingsCallbackHandler(Update update) throws TelegramApiException {
+        ShowMode setting = messageHandler.settingsHandler(update);
+        if (update.getCallbackQuery().getData().equals("SHOW FOLDER")) {
+            SendMessage message = messageBuilder.folderShowMessage(update);
+            executeNewMessage(message);
+        }
+        else {
+            EditMessageText text = messageBuilder.settingsMessage(setting, update);
+            executeEditMessage(text);
+        }
+    }
+
 
 }

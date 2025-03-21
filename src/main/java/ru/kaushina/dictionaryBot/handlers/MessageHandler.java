@@ -3,10 +3,7 @@ package ru.kaushina.dictionaryBot.handlers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.kaushina.dictionaryBot.model.User;
-import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.UserState;
-import ru.kaushina.dictionaryBot.model.Word;
+import ru.kaushina.dictionaryBot.model.*;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -208,5 +205,11 @@ public class MessageHandler {
         Long chatId = update.getMessage().getChatId();
         String message = update.getMessage().getText();
         return trainingSessionService.answerTestMode(chatId, message);
+    }
+
+    public ShowMode settingsHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        ShowMode mode = userService.changeSetting(chatId, update.getCallbackQuery().getData());
+        return mode;
     }
 }

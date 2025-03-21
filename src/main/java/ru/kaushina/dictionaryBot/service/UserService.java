@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.kaushina.dictionaryBot.model.ShowMode;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserState;
 import ru.kaushina.dictionaryBot.repository.UserRepository;
@@ -99,5 +100,17 @@ public class UserService {
     public String getCurrentWordKey(Long chatId) {
         User user = userRepository.findByChatId(chatId);
         return user.getCurrentWordKey();
+    }
+
+    public ShowMode changeSetting(Long chatId, String callback) {
+        User user = userRepository.findByChatId(chatId);
+        if (callback.equals("SHOW KEY")) {
+            user.setSetting(ShowMode.SHOW_KEY);
+        }
+        else if (callback.equals("SHOW VALUE")) {
+            user.setSetting(ShowMode.SHOW_VALUE);
+        }
+        userRepository.save(user);
+        return user.getSetting();
     }
 }

@@ -27,6 +27,7 @@ public class User {
 
     @Column(length=1000)
     private String currentWordKey;
+    private ShowMode setting;
 
     private Timestamp registeredAt;
 }
