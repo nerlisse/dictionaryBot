@@ -76,4 +76,8 @@ public class WordService {
         return null;
     }
 
+    public void cancelAddingWord(Long chatId) {
+        addedWords.remove(chatId);
+    }
+
 }

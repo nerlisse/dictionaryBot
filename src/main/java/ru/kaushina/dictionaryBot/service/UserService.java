@@ -95,17 +95,6 @@ public class UserService {
         return user.getCurrentFolderId();
     }
 
-    public void setCurrentWordKey(Long chatId, String wordKey) {
-        User user = userRepository.findByChatId(chatId);
-        user.setCurrentWordKey(wordKey);
-        userRepository.save(user);
-    }
-
-    public String getCurrentWordKey(Long chatId) {
-        User user = userRepository.findByChatId(chatId);
-        return user.getCurrentWordKey();
-    }
-
     public ShowMode changeSetting(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
         if (callback.equals("SHOW KEY")) {

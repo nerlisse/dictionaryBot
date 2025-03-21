@@ -34,7 +34,7 @@ public class MessageHandler {
         Long chatId = update.getMessage().getChatId();
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
-        userService.setCurrentWordKey(chatId, null);
+        wordService.cancelAddingWord(chatId);
         trainingSessionService.endTrainingSession(chatId);
     }
 
@@ -48,7 +48,7 @@ public class MessageHandler {
         }
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
-        userService.setCurrentWordKey(chatId, null);
+        wordService.cancelAddingWord(chatId);
     }
 
     //pressing create folder
@@ -134,7 +134,7 @@ public class MessageHandler {
             log.warn("word was not created for user {}", chatId);
         }
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
-        userService.setCurrentWordKey(chatId, null);
+        wordService.cancelAddingWord(chatId);
         return word;
     }
 
