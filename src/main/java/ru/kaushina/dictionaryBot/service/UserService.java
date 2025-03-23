@@ -28,10 +28,6 @@ public class UserService {
         return userRepository.findByChatId(chatId);
     }
 
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
-    }
-
     public void setUserState(Long chatId, UserState userState) {
         User user = userRepository.findByChatId(chatId);
         if (user != null) {

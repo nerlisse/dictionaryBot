@@ -29,25 +29,31 @@ public class MessageBuilder {
     private final WordService wordService;
     private final TrainingSessionService trainingSessionService;
 
-    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, TrainingSessionService trainingSessionService1) {
+    public MessageBuilder(UserService userService, FolderService folderService, WordService wordService,
+                          TrainingSessionService trainingSessionService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
-        this.trainingSessionService = trainingSessionService1;
+        this.trainingSessionService = trainingSessionService;
+    }
+
+    private SendMessage setNewMessageChatId(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = getChatId(update);
+        sendMessage.setChatId(chatId);
+        return sendMessage;
+    }
+
+    private Long getChatId(Update update) {
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else chatId = update.getMessage().getChatId();
+        return chatId;
     }
 
     public SendMessage getHomeMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId;
-        if (update.hasMessage()) {
-            chatId = update.getMessage().getChatId();
-        }
-        else {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-        }
-
-        // set chatid
-        message.setChatId(chatId.toString());
+        SendMessage message = setNewMessageChatId(update);
 
         //set text message
         String text = MessageTexts.getMessage("message.hello");
@@ -59,8 +65,9 @@ public class MessageBuilder {
         List<InlineKeyboardButton> row;
 
 
+
         //find all folders of users
-        List<Folder> folders = folderService.findByUser_ChatId(chatId);
+        List<Folder> folders = folderService.findByUser_ChatId(getChatId(update));
         //set all of them in inline markup
         for (Folder folder : folders) {
             row = new ArrayList<>();
@@ -82,29 +89,21 @@ public class MessageBuilder {
     }
 
     public SendMessage createFolderMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
-        //asking to enter folder name
-        String text = "enter new folder name: ";
+        SendMessage message = setNewMessageChatId(update);
+        String text = "enter new folder name: "; //asking to enter folder name
         message.setText(text);
-
         return message;
     }
 
 
     public SendMessage folderCreatedMessage(Update update, Folder folder) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        message.setChatId(chatId.toString());
-
+        SendMessage message = setNewMessageChatId(update);
         if (folder == null) {
             message.setText("folder was not created. Make sure you entered valid name, not empty, too long or already existing");
         } else {
             message.setText("Folder " + folder.getName() + " created");
         }
         return message;
-
     }
 
     private InlineKeyboardButton createButton(String text, String callbackData) {
@@ -116,18 +115,8 @@ public class MessageBuilder {
 
     //show folder menu
     public SendMessage folderShowMessage(Update update) {
-
-
-        SendMessage message = new SendMessage();
-        Long chatId;
-        if (update.hasMessage()) {
-            chatId = update.getMessage().getChatId();
-        }
-        else {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-        }
-        message.setChatId(chatId.toString());
-
+        SendMessage message = setNewMessageChatId(update);
+        Long chatId = getChatId(update);
         Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
@@ -179,9 +168,7 @@ public class MessageBuilder {
     }
 
     public SendMessage addWordMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
+        SendMessage message = setNewMessageChatId(update);
         //asking to enter word
         String text = "enter new word: ";
         message.setText(text);
@@ -190,29 +177,22 @@ public class MessageBuilder {
     }
 
     public SendMessage failedToAddWordMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        message.setChatId(chatId.toString());
+        SendMessage message = setNewMessageChatId(update);
         String text = "failed to add word, too long. Enter valid value: ";
         message.setText(text);
         return message;
     }
 
     public SendMessage addValueMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        message.setChatId(chatId.toString());
-        //asking to enter word
-        String text = "enter value: ";
+        SendMessage message = setNewMessageChatId(update);
+        String text = "enter value: "; //asking to enter word
         message.setText(text);
-
         return message;
     }
 
     public SendMessage showWordsMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
+        SendMessage message = setNewMessageChatId(update);
+        Long chatId = getChatId(update);
         StringBuilder text = new StringBuilder();
         text.append("Here are your words:\n\n");
 
@@ -231,9 +211,7 @@ public class MessageBuilder {
     }
 
     public SendMessage WordCreatedMessage(Update update, Word word) {
-        SendMessage sendMessage = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        sendMessage.setChatId(chatId.toString());
+        SendMessage sendMessage = setNewMessageChatId(update);
 
         if (word != null) {
             sendMessage.setText("Word created");
@@ -246,18 +224,13 @@ public class MessageBuilder {
     }
 
     public SendMessage deleteWordMessage(Update update) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
+        SendMessage message = setNewMessageChatId(update);
         message.setText("Enter the word to delete");
         return message;
     }
 
     public SendMessage WordDeletedMessage(Update update, boolean deleted) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        message.setChatId(chatId.toString());
-
+        SendMessage message = setNewMessageChatId(update);
         if (deleted) {
             message.setText("Word deleted");
         }
@@ -269,17 +242,13 @@ public class MessageBuilder {
 
     public SendMessage startRememberModeMessage(Update update,
                                                 TrainingSessionService.TrainingSession session) {
-        SendMessage message = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        message.setChatId(chatId.toString());
-
+        SendMessage message = setNewMessageChatId(update);
         message.setText(textRememberMode(session));
         message.setReplyMarkup(markupRememberMode(session));
         return message;
     }
 
     private String textRememberMode(TrainingSessionService.TrainingSession session) {
-        int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
         String wordKey, wordValue;
@@ -329,9 +298,7 @@ public class MessageBuilder {
 
 
     public SendMessage failedPlayModeMessage(Update update) {
-        SendMessage sendMessage = new SendMessage();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        sendMessage.setChatId(chatId.toString());
+        SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText("failed to start play mode, make sure folder is not empty");
         return sendMessage;
     }
@@ -358,13 +325,16 @@ public class MessageBuilder {
         return text;
     }
 
+    private EditMessageText setEditMessageChatId(Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(getChatId(update));
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        return editMessageText;
+    }
+
     public EditMessageText showRememberModeMessage(Update update,
                                                    TrainingSessionService.TrainingSession session) {
-        EditMessageText editMessageText = new EditMessageText();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        editMessageText.setChatId(chatId.toString());
-        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-
+        EditMessageText editMessageText = setEditMessageChatId(update);
         if (!session.isOver()) {
             editMessageText.setText(textRememberMode(session));
             editMessageText.setReplyMarkup(markupRememberMode(session));
@@ -372,16 +342,11 @@ public class MessageBuilder {
         else {
             editMessageText.setText(endRememberModeMessage(session));
         }
-
         return editMessageText;
     }
 
     public EditMessageText failedSessionMessage(Update update) {
-        EditMessageText editMessageText = new EditMessageText();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-        editMessageText.setChatId(chatId.toString());
-
+        EditMessageText editMessageText = setEditMessageChatId(update);
         editMessageText.setText("Sorry, this session is no longer available:(");
         editMessageText.setReplyMarkup(null);
         return editMessageText;
@@ -390,24 +355,14 @@ public class MessageBuilder {
 
 
     public SendMessage failedSessionNewMessage(Update update) {
-        SendMessage sendMessage = new SendMessage();
-        Long chatId = update.getMessage().getChatId();
-        sendMessage.setChatId(chatId.toString());
-
+        SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText("Sorry, this session is no longer available:(");
         return sendMessage;
     }
 
     public SendMessage showTestModeMessage(Update update,
                                            TrainingSessionService.TrainingSession session) {
-        SendMessage sendMessage = new SendMessage();
-        Long chatId;
-        if (update.hasCallbackQuery()) {
-            chatId = update.getCallbackQuery().getMessage().getChatId();
-        } else
-            chatId = update.getMessage().getChatId();
-        sendMessage.setChatId(chatId.toString());
-
+        SendMessage sendMessage = setNewMessageChatId(update);
         if (!session.isOver()) {
             sendMessage.setText(textTestMode(session));
             sendMessage.setReplyMarkup(markupTestMode(session));
@@ -419,10 +374,8 @@ public class MessageBuilder {
     }
 
     private String textTestMode(TrainingSessionService.TrainingSession session) {
-
         String text = showPreviousAnswer(session);
 
-        int index = session.getWordIndex();
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
         if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
@@ -453,10 +406,7 @@ public class MessageBuilder {
     }
 
     public EditMessageText settingsMessage(ShowMode setting, Update update) {
-        EditMessageText editMessageText = new EditMessageText();
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        editMessageText.setChatId(chatId.toString());
-        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        EditMessageText editMessageText = setEditMessageChatId(update);
 
         String text = "Here you can choose whether you want terms to show in play modes or their meanings.\n";
         text += "Current setting: " + (setting.equals(ShowMode.SHOW_KEY) ? "term" : "meaning") + "\n";
@@ -479,5 +429,12 @@ public class MessageBuilder {
         markup.setKeyboard(rowsInLine);
         editMessageText.setReplyMarkup(markup);
         return editMessageText;
+    }
+
+    public SendMessage getEasterEggMessage(Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText("Хотите, чтобы ваши продажи росли как на дрожжах? Для этого нужно" +
+                " всего лишь перед сном... чиmamь в uсточнuкe... https://github.com/Ira11111/FlexCRM");
+        return sendMessage;
     }
 }

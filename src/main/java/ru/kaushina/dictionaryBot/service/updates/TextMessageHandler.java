@@ -73,6 +73,14 @@ public class TextMessageHandler {
             return;
         }
 
+        if (message.equals("/crm")) {
+            SendMessage sendMessage = messageBuilder.getEasterEggMessage(update);
+            executeNewMessage(sendMessage);
+            messageHandler.startCommandHandler(update); //handle start command
+            sendMessage = messageBuilder.getHomeMessage(update); //build a message
+            executeNewMessage(sendMessage); //execute the message
+        }
+
         CheckedConsumer<Update> handler = stateHandlers.get(user.getUserState());
         if (handler != null) {
             handler.accept(update);

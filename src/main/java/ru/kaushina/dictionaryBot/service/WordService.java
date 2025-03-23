@@ -61,13 +61,6 @@ public class WordService {
         return true;
     }
 
-    public String getKeyword(Long folderId) {
-        if (addedWords.containsKey(folderId)) {
-            return addedWords.get(folderId);
-        }
-        return null;
-    }
-
     public Word addWord(Long folderId, String value) {
         if (addedWords.containsKey(folderId) && value.length() <= 1000) {
             return createWord(addedWords.get(folderId), value, folderId);
