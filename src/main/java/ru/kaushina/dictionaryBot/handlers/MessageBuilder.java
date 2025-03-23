@@ -50,7 +50,7 @@ public class MessageBuilder {
         message.setChatId(chatId.toString());
 
         //set text message
-        String text = "hello! thx for using this bot. here are your folders: ";
+        String text = MessageTexts.getMessage("message.hello");
         message.setText(text);
 
         //set inline markup
@@ -430,7 +430,7 @@ public class MessageBuilder {
                     "\n\n" + word.getWordKey() + "\n\n";
         } else {
             text += "Try to remember what that definition refers to and type it down:" +
-                    "\n\n" + word.getWordKey() + "\n\n";
+                    "\n\n" + word.getWordValue() + "\n\n";
         }
 
         text += "\nKeep in mind that you have to type in exactly how it was " +

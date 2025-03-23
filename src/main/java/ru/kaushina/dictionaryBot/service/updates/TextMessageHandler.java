@@ -50,6 +50,7 @@ public class TextMessageHandler {
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
         stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
 
+
     }
 
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
