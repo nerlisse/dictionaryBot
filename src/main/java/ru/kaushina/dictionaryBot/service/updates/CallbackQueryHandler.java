@@ -59,16 +59,12 @@ public class CallbackQueryHandler {
         callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
     }
-
-
-
     private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
         messageSender.executeEditMessageText(editMessage);
     }
 
 
     private void executeFailedEditMessage(Update update) throws TelegramApiException {
-
         EditMessageText messageText = new EditMessageText();
         messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
         messageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
@@ -91,15 +87,8 @@ public class CallbackQueryHandler {
             messageSender.executeCallbackAnswer(answer);
 
             executeFailedEditMessage(update);
-
             return;
         }
-
-        //answer for callback (for showing callback is answered)
-        //TO_DO: do it after completing action not before
-        answer.setCallbackQueryId(update.getCallbackQuery().getId());
-        answer.setShowAlert(false);
-        messageSender.executeCallbackAnswer(answer);
 
         String callback = callbackData.split("_")[0];
         CheckedConsumer<Update> handler = callbackHandlers.get(callback);
@@ -110,13 +99,16 @@ public class CallbackQueryHandler {
         else {
             log.warn("No handler found for callback: {}", callbackData);
         }
+        //answer for callback (for showing callback is answered)
+        answer.setCallbackQueryId(update.getCallbackQuery().getId());
+        answer.setShowAlert(false);
+        messageSender.executeCallbackAnswer(answer);
 
     }
 
     private void homeCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.homeHandler(update);
         SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-
         executeNewMessage(sendMessage); //execute the message
     }
 
@@ -133,14 +125,12 @@ public class CallbackQueryHandler {
     }
 
     private void showFolderCallbackHandler(Update update) throws TelegramApiException {
-        //log.info("");
         messageHandler.showFolderHandler(update);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
 
     private void addWordCallbackHandler(Update update) throws TelegramApiException {
-        //log.info("");
         messageHandler.askToAddWordHandler(update);
         SendMessage sendMessage = messageBuilder.addWordMessage(update);
         executeNewMessage(sendMessage);
@@ -216,7 +206,6 @@ public class CallbackQueryHandler {
         }
 
     }
-
 
     private void startTestModeCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
