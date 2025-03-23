@@ -64,20 +64,19 @@ public class MessageBuilder {
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> row;
 
-
-
         //find all folders of users
         List<Folder> folders = folderService.findByUser_ChatId(getChatId(update));
         //set all of them in inline markup
         for (Folder folder : folders) {
             row = new ArrayList<>();
-            row.add(createButton("folder: " + folder.getName(), "SHOW FOLDER_" + folder.getId()));
+            row.add(createButton(MessageTexts.getMessage("button.folder", folder.getName()),
+                    "SHOW FOLDER_" + folder.getId()));
             rowsInline.add(row);
         }
 
         row = new ArrayList<>();
         // adding create folder button
-        row.add(createButton("Create new folder", "CREATE NEW FOLDER"));
+        row.add(createButton(MessageTexts.getMessage("button.create_folder"), "CREATE NEW FOLDER"));
         rowsInline.add(row);
 
         //set markup for message
@@ -90,7 +89,7 @@ public class MessageBuilder {
 
     public SendMessage createFolderMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        String text = "enter new folder name: "; //asking to enter folder name
+        String text = MessageTexts.getMessage("message.enter_folder_name"); //asking to enter folder name
         message.setText(text);
         return message;
     }
@@ -99,9 +98,9 @@ public class MessageBuilder {
     public SendMessage folderCreatedMessage(Update update, Folder folder) {
         SendMessage message = setNewMessageChatId(update);
         if (folder == null) {
-            message.setText("folder was not created. Make sure you entered valid name, not empty, too long or already existing");
+            message.setText(MessageTexts.getMessage("message.folder_not_created"));
         } else {
-            message.setText("Folder " + folder.getName() + " created");
+            message.setText(MessageTexts.getMessage("message.folder_created", folder.getId()));
         }
         return message;
     }
@@ -120,73 +119,66 @@ public class MessageBuilder {
         Long folderId = userService.getCurrentFolderId(chatId);
         Optional<Folder> folder = folderService.findById(folderId);
         if (folder.isEmpty()) {
-            message.setText("folder with that name does not exist");
+            message.setText(MessageTexts.getMessage("message.folder_not_found"));
             return message;
         }
 
         log.info("showing folder {} for user {}", folder.get().getName(), chatId);
 
-        message.setText("You are in folder " + folder.get().getName());
+        message.setText(MessageTexts.getMessage("message.folder_screen", folder.get().getName()));
 
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
 
         List<InlineKeyboardButton> row = new ArrayList<>();
         //button for adding a word
-        row.add(createButton("Add word", "ADD WORD"));
+        row.add(createButton(MessageTexts.getMessage("button.add_word"), "ADD WORD"));
         // button for deleting word
-        row.add(createButton("Delete word", "DELETE WORD"));
+        row.add(createButton(MessageTexts.getMessage("button.delete_word"), "DELETE WORD"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
         //button for showing all words
-        row.add(createButton("Show all words", "SHOW WORDS"));
+        row.add(createButton(MessageTexts.getMessage("button.show_words"), "SHOW WORDS"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("Remember mode", "REMEMBER MODE"));
-        row.add(createButton("Test mode", "TEST MODE"));
+        row.add(createButton(MessageTexts.getMessage("button.remember_mode"), "REMEMBER MODE"));
+        row.add(createButton(MessageTexts.getMessage("button.test_mode"), "TEST MODE"));
         rowsInline.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("Settings", "SETTINGS"));
+        row.add(createButton(MessageTexts.getMessage("button.settings"), "SETTINGS"));
         // button for deleting the folder
-        row.add(createButton("Delete folder", "DELETE FOLDER"));
+        row.add(createButton(MessageTexts.getMessage("button.delete_folder"), "DELETE FOLDER"));
         rowsInline.add(row);
 
 
         row = new ArrayList<>();
         // button for home screen
-        row.add(createButton("Go back", "HOME"));
+        row.add(createButton(MessageTexts.getMessage("button.go_home"), "HOME"));
 
         rowsInline.add(row);
         inlineKeyboardMarkup.setKeyboard(rowsInline);
         message.setReplyMarkup(inlineKeyboardMarkup);
-
         return message;
-
     }
 
     public SendMessage addWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        //asking to enter word
-        String text = "enter new word: ";
-        message.setText(text);
-
+        message.setText(MessageTexts.getMessage("message.add_word"));
         return message;
     }
 
     public SendMessage failedToAddWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        String text = "failed to add word, too long. Enter valid value: ";
-        message.setText(text);
+        message.setText(MessageTexts.getMessage("message.add_word_again"));
         return message;
     }
 
     public SendMessage addValueMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        String text = "enter value: "; //asking to enter word
-        message.setText(text);
+        message.setText(MessageTexts.getMessage("message.add_value"));
         return message;
     }
 
@@ -194,7 +186,7 @@ public class MessageBuilder {
         SendMessage message = setNewMessageChatId(update);
         Long chatId = getChatId(update);
         StringBuilder text = new StringBuilder();
-        text.append("Here are your words:\n\n");
+        text.append(MessageTexts.getMessage("message.show_words"));
 
         Long folderId = userService.getCurrentFolderId(chatId);
         List<Word> words = folderService.getFolderWords(folderId);
@@ -212,30 +204,28 @@ public class MessageBuilder {
 
     public SendMessage WordCreatedMessage(Update update, Word word) {
         SendMessage sendMessage = setNewMessageChatId(update);
-
         if (word != null) {
-            sendMessage.setText("Word created");
+            sendMessage.setText(MessageTexts.getMessage("message.word_created"));
         }
         else {
-            sendMessage.setText("Couldn't create word. Check if the value's aren't too long, are not empty, or" +
-                    "session was not over :(");
+            sendMessage.setText(MessageTexts.getMessage("message.word_not_created"));
         }
         return sendMessage;
     }
 
     public SendMessage deleteWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        message.setText("Enter the word to delete");
+        message.setText(MessageTexts.getMessage("message.delete_word"));
         return message;
     }
 
     public SendMessage WordDeletedMessage(Update update, boolean deleted) {
         SendMessage message = setNewMessageChatId(update);
         if (deleted) {
-            message.setText("Word deleted");
+            message.setText(MessageTexts.getMessage("message.word_deleted"));
         }
         else {
-            message.setText("Couldn't delete word: no such key");
+            message.setText(MessageTexts.getMessage("message.word_not_deleted"));
         }
         return message;
     }
@@ -251,22 +241,13 @@ public class MessageBuilder {
     private String textRememberMode(TrainingSessionService.TrainingSession session) {
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
-        String wordKey, wordValue;
-        if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
-            wordKey = word.getWordKey();
-            wordValue = word.getWordValue();
-        }
-        else {
-            wordKey = word.getWordValue();
-            wordValue = word.getWordKey();
-        }
-        String text = "Do you remember that word?\n\n" + wordKey + "\n\n";
-
+        String wordKey = (session.getShowMode().equals(ShowMode.SHOW_KEY) ? word.getWordKey() : word.getWordValue());
+        String wordValue = (session.getShowMode().equals(ShowMode.SHOW_KEY) ? word.getWordValue() : word.getWordKey());
+        String text = MessageTexts.getMessage("message.remember_word", wordKey);
         if (session.isShowAnswer()) {
-            text += "Answer:\n" + wordValue + "\n\n";
+            text += MessageTexts.getMessage("message.remember_answer", wordValue);
         }
-
-        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+        text += MessageTexts.getMessage("message.progress", (session.getWordIndex()+1), session.getFolderSize());
 
         return text;
     }
@@ -276,20 +257,21 @@ public class MessageBuilder {
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
 
         List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(createButton("I remember", "REMEMBER"));
-        row.add(createButton("I do not remember", "DO NOT REMEMBER"));
+        row.add(createButton(MessageTexts.getMessage("message.remember"), "REMEMBER"));
+        row.add(createButton(MessageTexts.getMessage("message.not_remember"), "DO NOT REMEMBER"));
         rowsInLine.add(row);
+
         row = new ArrayList<>();
         if (session.isShowAnswer()) {
-            row.add(createButton("Hide the answer", "SHOW ANSWER"));
+            row.add(createButton(MessageTexts.getMessage("message.hide_answer"), "SHOW ANSWER"));
         }
         else {
-            row.add(createButton("Show the answer", "HIDE ANSWER"));
+            row.add(createButton(MessageTexts.getMessage("message.show_answer"), "HIDE ANSWER"));
         }
         rowsInLine.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("End the practice", "END PLAY"));
+        row.add(createButton(MessageTexts.getMessage("message.end_practice"), "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
@@ -299,7 +281,7 @@ public class MessageBuilder {
 
     public SendMessage failedPlayModeMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
-        sendMessage.setText("failed to start play mode, make sure folder is not empty");
+        sendMessage.setText(MessageTexts.getMessage("message.failed_start_mode"));
         return sendMessage;
     }
 
@@ -309,12 +291,14 @@ public class MessageBuilder {
             //show the answer for previous word
             Word prevWord = wordService.findById(session.getPreviousWord().getWordId());
             if (session.getPreviousWord().isRemembered()) {
-                text += "Correct!\n";
+                text += MessageTexts.getMessage("message.right_answer",
+                        session.getShowMode().equals(ShowMode.SHOW_KEY) ?
+                                prevWord.getWordValue() : prevWord.getWordKey());
             }
-            else text+= "Incorrect!\n";
-            text += "Answer: \n";
-            text += (session.getShowMode().equals(ShowMode.SHOW_KEY) ?
-                    prevWord.getWordValue() : prevWord.getWordKey()) + "\n\n";
+            else
+                text += MessageTexts.getMessage("message.wrong_answer",
+                        session.getShowMode().equals(ShowMode.SHOW_KEY) ?
+                                prevWord.getWordValue() : prevWord.getWordKey());
         }
         return text;
     }
@@ -347,7 +331,7 @@ public class MessageBuilder {
 
     public EditMessageText failedSessionMessage(Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
-        editMessageText.setText("Sorry, this session is no longer available:(");
+        editMessageText.setText(MessageTexts.getMessage("message.wrong_session"));
         editMessageText.setReplyMarkup(null);
         return editMessageText;
 
@@ -356,7 +340,7 @@ public class MessageBuilder {
 
     public SendMessage failedSessionNewMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
-        sendMessage.setText("Sorry, this session is no longer available:(");
+        sendMessage.setText(MessageTexts.getMessage("message.wrong_session"));
         return sendMessage;
     }
 
@@ -365,7 +349,7 @@ public class MessageBuilder {
         SendMessage sendMessage = setNewMessageChatId(update);
         if (!session.isOver()) {
             sendMessage.setText(textTestMode(session));
-            sendMessage.setReplyMarkup(markupTestMode(session));
+            sendMessage.setReplyMarkup(markupTestMode());
         } else {
             sendMessage.setText(endRememberModeMessage(session));
         }
@@ -379,26 +363,20 @@ public class MessageBuilder {
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
         if (session.getShowMode().equals(ShowMode.SHOW_KEY)) {
-            text += "Try to remember what that term means and type it down:" +
-                    "\n\n" + word.getWordKey() + "\n\n";
+            text += MessageTexts.getMessage("message.test_mode_word", word.getWordKey());
         } else {
-            text += "Try to remember what that definition refers to and type it down:" +
-                    "\n\n" + word.getWordValue() + "\n\n";
+            text += MessageTexts.getMessage("message.test_mode_value", word.getWordValue());
         }
-
-        text += "\nKeep in mind that you have to type in exactly how it was " +
-        "submitted (case-insensitive) \nIf you can't remember, send any message (don't give up tho)\n\n";
-
-        text += "Progress: " + (session.getWordIndex()+1) + " out of " + session.getFolderSize();
+        text += MessageTexts.getMessage("message.test_mode_warning");
+        text += MessageTexts.getMessage("message.progress", (session.getWordIndex()+1), session.getFolderSize());
         return text;
     }
 
-    private InlineKeyboardMarkup markupTestMode(TrainingSessionService.TrainingSession session) {
+    private InlineKeyboardMarkup markupTestMode() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
-
-        row.add(createButton("End the practice", "END PLAY"));
+        row.add(createButton(MessageTexts.getMessage("message.end_practice"), "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
@@ -407,23 +385,20 @@ public class MessageBuilder {
 
     public EditMessageText settingsMessage(ShowMode setting, Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
-
-        String text = "Here you can choose whether you want terms to show in play modes or their meanings.\n";
-        text += "Current setting: " + (setting.equals(ShowMode.SHOW_KEY) ? "term" : "meaning") + "\n";
-
-        text += "Click on what you would like to see.\n";
+        String text = MessageTexts.getMessage("message.settings",
+                (setting.equals(ShowMode.SHOW_KEY) ? "термин" : "значение"));
         editMessageText.setText(text);
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
 
-        row.add(createButton("Change to term", "SHOW KEY"));
-        row.add(createButton("Change to meaning", "SHOW VALUE"));
+        row.add(createButton(MessageTexts.getMessage("message.change_term"), "SHOW KEY"));
+        row.add(createButton(MessageTexts.getMessage("message.change_meaning"), "SHOW VALUE"));
         rowsInLine.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton("Go back", "SHOW FOLDER"));
+        row.add(createButton(MessageTexts.getMessage("button.go_home"), "SHOW FOLDER"));
         rowsInLine.add(row);
 
         markup.setKeyboard(rowsInLine);
@@ -433,8 +408,7 @@ public class MessageBuilder {
 
     public SendMessage getEasterEggMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
-        sendMessage.setText("Хотите, чтобы ваши продажи росли как на дрожжах? Для этого нужно" +
-                " всего лишь перед сном... чиmamь в uсточнuкe... https://github.com/Ira11111/FlexCRM");
+        sendMessage.setText(MessageTexts.getMessage("message.easter_egg"));
         return sendMessage;
     }
 }
