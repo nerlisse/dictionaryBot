@@ -81,7 +81,7 @@ public class UserService {
         User user = userRepository.findByChatId(chatId);
         if (user.getCurrentFolderId() == null && callback != null) {
             user.setCurrentFolderId(Long.valueOf(callback.substring(12)));
-        } else user.setCurrentFolderId(null);
+        }
         log.info("Showing folder {} to user {}", user.getCurrentFolderId(), chatId);
         userRepository.save(user);
     }
