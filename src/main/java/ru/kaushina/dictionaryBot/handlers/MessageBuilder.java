@@ -100,7 +100,7 @@ public class MessageBuilder {
         if (folder == null) {
             message.setText(MessageTexts.getMessage("message.folder_not_created"));
         } else {
-            message.setText(MessageTexts.getMessage("message.folder_created", folder.getId()));
+            message.setText(MessageTexts.getMessage("message.folder_created", folder.getName()));
         }
         return message;
     }
@@ -409,6 +409,12 @@ public class MessageBuilder {
     public SendMessage getEasterEggMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText(MessageTexts.getMessage("message.easter_egg"));
+        return sendMessage;
+    }
+
+    public SendMessage getEasterEgg2Message(Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage("message.easter_egg2"));
         return sendMessage;
     }
 }

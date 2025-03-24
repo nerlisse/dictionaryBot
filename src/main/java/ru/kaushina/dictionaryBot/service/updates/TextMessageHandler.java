@@ -67,18 +67,13 @@ public class TextMessageHandler {
         User user = userService.findByChatId(chatId);
 
         if (message.equals("/start")) { //start command
-            messageHandler.startCommandHandler(update); //handle start command
-            SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
-            executeNewMessage(sendMessage); //execute the message
+            startCommand(update);
             return;
         }
 
-        if (message.equals("/crm")) {
-            SendMessage sendMessage = messageBuilder.getEasterEggMessage(update);
-            executeNewMessage(sendMessage);
-            messageHandler.startCommandHandler(update); //handle start command
-            sendMessage = messageBuilder.getHomeMessage(update); //build a message
-            executeNewMessage(sendMessage); //execute the message
+        if (message.equals("/crm") || message.equals("/flex")) {
+            easterCommand(update);
+            return;
         }
 
         CheckedConsumer<Update> handler = stateHandlers.get(user.getUserState());
@@ -87,6 +82,27 @@ public class TextMessageHandler {
         } else {
             log.warn("No handler found for user state: {}", user.getUserState());
         }
+    }
+
+    private void startCommand(Update update) throws TelegramApiException {
+        messageHandler.startCommandHandler(update); //handle start command
+        SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
+        executeNewMessage(sendMessage); //execute the message
+    }
+
+    private void easterCommand(Update update) throws TelegramApiException {
+        SendMessage sendMessage;
+        if (update.getMessage().getText().equals("/crm")) {
+            sendMessage = messageBuilder.getEasterEggMessage(update);
+            executeNewMessage(sendMessage);
+        }
+        else if (update.getMessage().getText().equals("/flex")) {
+            sendMessage = messageBuilder.getEasterEgg2Message(update);
+            executeNewMessage(sendMessage);
+        }
+        messageHandler.startCommandHandler(update); //handle start command
+        sendMessage = messageBuilder.getHomeMessage(update); //build a message
+        executeNewMessage(sendMessage); //execute the message
     }
 
     private void createFolderHandler(Update update) throws TelegramApiException {

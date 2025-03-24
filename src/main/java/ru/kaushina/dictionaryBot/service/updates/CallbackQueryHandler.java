@@ -13,6 +13,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.handlers.MessageHandler;
+import ru.kaushina.dictionaryBot.handlers.MessageTexts;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
@@ -68,7 +69,7 @@ public class CallbackQueryHandler {
         EditMessageText messageText = new EditMessageText();
         messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
         messageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
-        messageText.setText("This message is no longer available :(");
+        messageText.setText(MessageTexts.getMessage("message.unavailable"));
         messageSender.executeEditMessageText(messageText);
     }
 
