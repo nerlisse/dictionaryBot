@@ -186,16 +186,21 @@ public class MessageBuilder {
         SendMessage message = setNewMessageChatId(update);
         Long chatId = getChatId(update);
         StringBuilder text = new StringBuilder();
-        text.append(MessageTexts.getMessage("message.show_words"));
 
         Long folderId = userService.getCurrentFolderId(chatId);
         List<Word> words = folderService.getFolderWords(folderId);
-        int i = 1;
-        for (Word word : words) {
-            text.append(i).append(") ");
-            text.append(word.getWordKey()).append(":\n");
-            text.append(word.getWordValue()).append("\n");
-            i++;
+        if (words.isEmpty()) {
+            text.append(MessageTexts.getMessage("message.words_not_found"));
+        }
+        else {
+            text.append(MessageTexts.getMessage("message.show_words"));
+            int i = 1;
+            for (Word word : words) {
+                text.append(i).append(") ");
+                text.append(word.getWordKey()).append(":\n");
+                text.append(word.getWordValue()).append("\n");
+                i++;
+            }
         }
         message.setText(text.toString());
 
@@ -336,7 +341,6 @@ public class MessageBuilder {
         return editMessageText;
 
     }
-
 
     public SendMessage failedSessionNewMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);

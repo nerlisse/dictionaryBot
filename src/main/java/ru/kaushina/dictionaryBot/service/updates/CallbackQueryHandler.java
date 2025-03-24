@@ -160,6 +160,8 @@ public class CallbackQueryHandler {
         }
         else {
             sendMessage = messageBuilder.failedPlayModeMessage(update);
+            executeNewMessage(sendMessage);
+            sendMessage = messageBuilder.folderShowMessage(update);
         }
         executeNewMessage(sendMessage);
     }
@@ -174,6 +176,7 @@ public class CallbackQueryHandler {
         messageHandler.endPlayModeHandler(update);
         EditMessageText message = messageBuilder.failedSessionMessage(update);
         executeEditMessage(message);
+        System.out.println("failed session");
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
