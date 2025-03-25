@@ -6,9 +6,9 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Chat;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
-import ru.kaushina.dictionaryBot.model.ShowMode;
+import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.User;
-import ru.kaushina.dictionaryBot.model.UserState;
+import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.repository.UserRepository;
 
 import java.sql.Timestamp;
@@ -26,10 +26,6 @@ public class UserService {
     @Cacheable(value="users", key="#chatId")
     public User findByChatId(Long chatId) {
         return userRepository.findByChatId(chatId);
-    }
-
-    public User findByUsername(String username) {
-        return userRepository.findByUsername(username);
     }
 
     public void setUserState(Long chatId, UserState userState) {
@@ -83,7 +79,7 @@ public class UserService {
 
     public void setCurrentFolderId(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
-        if (user.getCurrentFolderId() == null) {
+        if (user.getCurrentFolderId() == null && callback != null) {
             user.setCurrentFolderId(Long.valueOf(callback.substring(12)));
         }
         log.info("Showing folder {} to user {}", user.getCurrentFolderId(), chatId);
@@ -93,17 +89,6 @@ public class UserService {
     public Long getCurrentFolderId(Long chatId) {
         User user = userRepository.findByChatId(chatId);
         return user.getCurrentFolderId();
-    }
-
-    public void setCurrentWordKey(Long chatId, String wordKey) {
-        User user = userRepository.findByChatId(chatId);
-        user.setCurrentWordKey(wordKey);
-        userRepository.save(user);
-    }
-
-    public String getCurrentWordKey(Long chatId) {
-        User user = userRepository.findByChatId(chatId);
-        return user.getCurrentWordKey();
     }
 
     public ShowMode changeSetting(Long chatId, String callback) {

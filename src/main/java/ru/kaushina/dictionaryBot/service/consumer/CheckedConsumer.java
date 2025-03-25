@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.service;
+package ru.kaushina.dictionaryBot.service.consumer;
 
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
