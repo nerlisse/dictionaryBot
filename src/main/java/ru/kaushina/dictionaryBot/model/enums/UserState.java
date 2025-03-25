@@ -1,5 +1,7 @@
 package ru.kaushina.dictionaryBot.model.enums;
 
+/**Состояние пользователя.
+ */
 public enum UserState {
     MAIN_MENU,
     SHOW_FOLDER,
