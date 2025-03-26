@@ -15,6 +15,7 @@ import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.ArrayList;
 import java.util.List;
