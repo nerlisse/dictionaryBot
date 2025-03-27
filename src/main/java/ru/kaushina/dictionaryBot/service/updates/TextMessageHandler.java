@@ -22,6 +22,9 @@ import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Сервис обработки текстовых сообщений от пользователя.
+ */
 @Slf4j
 @Service
 public class TextMessageHandler {
@@ -53,11 +56,21 @@ public class TextMessageHandler {
 
     }
 
+    /**
+     * Отправляет новое сообщение и регистрирует идентификатор последнего сообщения
+     * @param sendMessage Объект SendMessage для отправки
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
         Message sentMessage = messageSender.executeMessage(sendMessage);
         userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
     }
 
+    /**
+     * Обрабатывает текстовое сообщение от пользователя.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке обработки
+     */
     public void handleTextMessage(Update update) throws TelegramApiException {
         String message = update.getMessage().getText();
         long chatId = update.getMessage().getChatId();
@@ -84,12 +97,22 @@ public class TextMessageHandler {
         }
     }
 
+    /**
+     * Обработка команды /start.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке обработки
+     */
     private void startCommand(Update update) throws TelegramApiException {
         messageHandler.startCommandHandler(update); //handle start command
         SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
         executeNewMessage(sendMessage); //execute the message
     }
 
+    /**
+     * Обработка пасхальных команд ;)
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке обработки
+     */
     private void easterCommand(Update update) throws TelegramApiException {
         SendMessage sendMessage;
         if (update.getMessage().getText().equals("/crm")) {
@@ -105,6 +128,11 @@ public class TextMessageHandler {
         executeNewMessage(sendMessage); //execute the message
     }
 
+    /**
+     * Обработчик добавления папки.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void createFolderHandler(Update update) throws TelegramApiException {
         Folder folder = messageHandler.folderCreationHandler(update);
         SendMessage sendMessage = messageBuilder.folderCreatedMessage(update, folder);
@@ -114,6 +142,11 @@ public class TextMessageHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик добавления термина(ключа) для пользователя.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void addKeyHandler(Update update) throws TelegramApiException {
         boolean created = messageHandler.addKeywordHandler(update);
         SendMessage sendMessage;
@@ -125,6 +158,11 @@ public class TextMessageHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик добавления значения и создания слова.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void addValueHandler(Update update) throws TelegramApiException {
         Word word = messageHandler.addValueHandler(update);
         SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
@@ -134,6 +172,11 @@ public class TextMessageHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик удаления слова из папки.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void deleteWordHandler(Update update) throws TelegramApiException {
         boolean deleted = messageHandler.deleteWordHandler(update);
         SendMessage sendMessage = messageBuilder.WordDeletedMessage(update, deleted);
@@ -143,7 +186,11 @@ public class TextMessageHandler {
         executeNewMessage(sendMessage);
     }
 
-
+    /**
+     * Обработчик ответов на режим теста.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void answerTestModeHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.answerTestModeHandler(update);
         if (session == null) {
@@ -160,6 +207,11 @@ public class TextMessageHandler {
         }
     }
 
+    /**
+     * Обработчик ответов в случае несуществующей/недоступной сессии.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void failedMessageSessionHandler(Update update) throws TelegramApiException {
         SendMessage message = messageBuilder.failedSessionNewMessage(update);
         executeNewMessage(message);

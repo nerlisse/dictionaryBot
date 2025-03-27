@@ -13,6 +13,13 @@ import ru.kaushina.dictionaryBot.repository.UserRepository;
 
 import java.sql.Timestamp;
 
+/**
+ * Сервис для работы с пользователями Telegram бота.
+ * Обеспечивает регистрацию пользователей, управление их состоянием и настройками.
+ * @see UserRepository
+ * @see User
+ * @see UserState
+ */
 @Slf4j
 @Service
 public class UserService {
@@ -23,11 +30,21 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    /**
+     * Находит пользователя по chatId.
+     * @param chatId уникальный идентификатор чата пользователя
+     * @return найденный пользователь или {@code null}, если пользователь не найден
+     */
     @Cacheable(value="users", key="#chatId")
     public User findByChatId(Long chatId) {
         return userRepository.findByChatId(chatId);
     }
 
+    /**
+     * Устанавливает состояние пользователя.
+     * @param chatId уникальный идентификатор чата пользователя
+     * @param userState новое состояние пользователя
+     */
     public void setUserState(Long chatId, UserState userState) {
         User user = userRepository.findByChatId(chatId);
         if (user != null) {
@@ -41,6 +58,11 @@ public class UserService {
         }
     }
 
+    /**
+     * Регистрирует нового пользователя на основе данных из Telegram
+     * @param update объект Update с обновлением
+     * @return зарегистрированный пользователь или {@code null}, если пользователь уже существует
+     */
     public User registerUser(Update update) {
         Message message = update.getMessage();
         long chatId = message.getChatId();
@@ -67,16 +89,30 @@ public class UserService {
 
     }
 
+    /**
+     * Сохраняет пользователя в БД.
+     * @param user объект пользователя для сохранения
+     */
     public void save(User user) {
         userRepository.save(user);
     }
 
+    /**
+     * Устанавливает идентификатор последнего сообщения для пользователя.
+     * @param chatId уникальный идентификатор чата пользователя
+     * @param messageId идентификатор сообщения
+     */
     public void setLastMessageId(Long chatId, Integer messageId) {
         User user = userRepository.findByChatId(chatId);
         user.setLastMessageId(messageId);
         userRepository.save(user);
     }
 
+    /**
+     * Устанавливает текущую рабочую папку для пользователя.
+     * @param chatId уникальный идентификатор чата пользователя
+     * @param callback данные callback-запроса (может быть null)
+     */
     public void setCurrentFolderId(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
         if (user.getCurrentFolderId() == null && callback != null) {
@@ -86,11 +122,22 @@ public class UserService {
         userRepository.save(user);
     }
 
+    /**
+     * Получает идентификатор текущей рабочей папки пользователя
+     * @param chatId уникальный идентификатор чата пользователя
+     * @return Long - идентификатор текущей папки или null, если папка не установлена
+     */
     public Long getCurrentFolderId(Long chatId) {
         User user = userRepository.findByChatId(chatId);
         return user.getCurrentFolderId();
     }
 
+    /**
+     * Изменяет настройку отображения для пользователя
+     * @param chatId уникальный идентификатор чата пользователя
+     * @param callback строка с названием настройки ("SHOW KEY" или "SHOW VALUE")
+     * @return ShowMode - новое значение настройки
+     */
     public ShowMode changeSetting(Long chatId, String callback) {
         User user = userRepository.findByChatId(chatId);
         if (callback.equals("SHOW KEY")) {
@@ -103,6 +150,11 @@ public class UserService {
         return user.getSetting();
     }
 
+    /**
+     * Получает текущую настройку отображения пользователя.
+     * @param chatId уникальный идентификатор чата пользователя
+     * @return ShowMode - текущая настройка отображения
+     */
     public ShowMode getShowMode(Long chatId) {
         User user = userRepository.findByChatId(chatId);
         return user.getSetting();

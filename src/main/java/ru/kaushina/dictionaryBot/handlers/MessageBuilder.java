@@ -15,11 +15,15 @@ import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.WordService;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Класс, ответственный за постройку сообщений бота.
+ */
 @Slf4j
 @Component
 public class MessageBuilder {
@@ -37,6 +41,11 @@ public class MessageBuilder {
         this.trainingSessionService = trainingSessionService;
     }
 
+    /**
+     * Вспомогательный метод для создания нового сообщения и присваивания ему chatId получателя.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение
+     */
     private SendMessage setNewMessageChatId(Update update) {
         SendMessage sendMessage = new SendMessage();
         Long chatId = getChatId(update);
@@ -44,6 +53,11 @@ public class MessageBuilder {
         return sendMessage;
     }
 
+    /**
+     * Вспомогательный метод для нахождения chatId пользователя из текстового сообщения или callback-а.
+     * @param update Объект Update с обновлением
+     * @return Long - идентификатор чата с пользователем
+     */
     private Long getChatId(Update update) {
         Long chatId;
         if (update.hasCallbackQuery()) {
@@ -52,6 +66,11 @@ public class MessageBuilder {
         return chatId;
     }
 
+    /**
+     * Получение сообщения "главного меню" - сообщение с папками и созданием новой папки.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение с главным меню
+     */
     public SendMessage getHomeMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
 
@@ -87,6 +106,11 @@ public class MessageBuilder {
 
     }
 
+    /**
+     * Составление сообщения с приглашением ввести имя новой папки.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - сообщение ввода новой папки
+     */
     public SendMessage createFolderMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         String text = MessageTexts.getMessage("message.enter_folder_name"); //asking to enter folder name
@@ -94,7 +118,12 @@ public class MessageBuilder {
         return message;
     }
 
-
+    /**
+     * Составление сообщения успешного/неуспешного создания папки.
+     * @param update Объект Update с обновлением
+     * @param folder Объект Folder, содержащий объект, если папка была создана, и{@code null}
+     * @return SendMessage - сообщение, уведомляющее пользователя о создании папки
+     */
     public SendMessage folderCreatedMessage(Update update, Folder folder) {
         SendMessage message = setNewMessageChatId(update);
         if (folder == null) {
@@ -105,6 +134,12 @@ public class MessageBuilder {
         return message;
     }
 
+    /**
+     * Вспомогательный метод для создания инлайн-кнопки.
+     * @param text текст кнопки
+     * @param callbackData callback, присваиваемый кнопке
+     * @return InlineKeyboardButton готовый объект кнопки
+     */
     private InlineKeyboardButton createButton(String text, String callbackData) {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
         inlineKeyboardButton.setText(text);
@@ -112,6 +147,11 @@ public class MessageBuilder {
         return inlineKeyboardButton;
     }
 
+    /**
+     * Составление сообщения с выводом меню папки.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение с меню папки
+     */
     //show folder menu
     public SendMessage folderShowMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
@@ -164,24 +204,44 @@ public class MessageBuilder {
         return message;
     }
 
+    /**
+     * Составление сообщения с приглашением ввести термин.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение о вводе термина
+     */
     public SendMessage addWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         message.setText(MessageTexts.getMessage("message.add_word"));
         return message;
     }
 
+    /**
+     * Составление сообщения о неудачном добавлении слова.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение, уведомляющее о неудаче термина
+     */
     public SendMessage failedToAddWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         message.setText(MessageTexts.getMessage("message.add_word_again"));
         return message;
     }
 
+    /**
+     * Составления сообщения о приглашении к добавлению значения для термина.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение о вводе значения термина
+     */
     public SendMessage addValueMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         message.setText(MessageTexts.getMessage("message.add_value"));
         return message;
     }
 
+    /**
+     * Составление сообщения со всеми словами в выбранной папке.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение со словами
+     */
     public SendMessage showWordsMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         Long chatId = getChatId(update);
@@ -207,6 +267,12 @@ public class MessageBuilder {
         return message;
     }
 
+    /**
+     * Составление сообщения об успешном добавлении/неудаче при добавлении слова.
+     * @param update Объект Update с обновлением
+     * @param word Объект Word с созданным словом, {@code null} если слово не было создано
+     * @return SendMessage - новое сообщение с результатом создания слова
+     */
     public SendMessage WordCreatedMessage(Update update, Word word) {
         SendMessage sendMessage = setNewMessageChatId(update);
         if (word != null) {
@@ -218,12 +284,23 @@ public class MessageBuilder {
         return sendMessage;
     }
 
+    /**
+     * Составление сообщения для приглашения к удалению слова
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение с приглашением к удалению
+     */
     public SendMessage deleteWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
         message.setText(MessageTexts.getMessage("message.delete_word"));
         return message;
     }
 
+    /**
+     * Составление сообщение об успешном/неуспешном удалении слова
+     * @param update Объект Update с обновлением
+     * @param deleted флаг, показывающий, было ли удалено слово
+     * @return SendMessage - новое сообщение с результатом удаления
+     */
     public SendMessage WordDeletedMessage(Update update, boolean deleted) {
         SendMessage message = setNewMessageChatId(update);
         if (deleted) {
@@ -235,6 +312,12 @@ public class MessageBuilder {
         return message;
     }
 
+    /**
+     * Составление нового сообщения с режимом запоминания.
+     * @param update Объект Update с обновлением
+     * @param session Объект TrainingSession с состоянием сессии
+     * @return SendMessage - новое сообщение с началом режима запоминания
+     */
     public SendMessage startRememberModeMessage(Update update,
                                                 TrainingSessionService.TrainingSession session) {
         SendMessage message = setNewMessageChatId(update);
@@ -243,6 +326,11 @@ public class MessageBuilder {
         return message;
     }
 
+    /**
+     * Составление текста сообщения в режиме запоминания.
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return String - текст сообщения
+     */
     private String textRememberMode(TrainingSessionService.TrainingSession session) {
         Word word = wordService.findById(session.getWords().get(session.getWordIndex()).getWordId());
 
@@ -257,6 +345,11 @@ public class MessageBuilder {
         return text;
     }
 
+    /**
+     * Составление инлайна (кнопок сообщения) для режима запоминания.
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return InlineKeyboardMarkup объект разметки кнопок
+     */
     private InlineKeyboardMarkup markupRememberMode(TrainingSessionService.TrainingSession session) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
@@ -283,13 +376,22 @@ public class MessageBuilder {
         return inlineKeyboardMarkup;
     }
 
-
+    /**
+     * Составление сообщения о неудаче начала игрового режима.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение, уведомляющее о неудаче игрового режима
+     */
     public SendMessage failedPlayModeMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText(MessageTexts.getMessage("message.failed_start_mode"));
         return sendMessage;
     }
 
+    /**
+     * Составление части текста сообщения с отображением ответа на предыдущее слово.
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return String - строка, содержащая ответ на вопрос
+     */
     private String showPreviousAnswer(TrainingSessionService.TrainingSession session) {
         String text = "";
         if (session.getPreviousWord() != null) {
@@ -308,12 +410,22 @@ public class MessageBuilder {
         return text;
     }
 
-    private String endRememberModeMessage(TrainingSessionService.TrainingSession session) {
+    /**
+     * Составление сообщения о завершении игрового режима и отображении статистики.
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return String - текст сообщения со статистикой
+     */
+    private String endPlayModeMessage(TrainingSessionService.TrainingSession session) {
         String text = showPreviousAnswer(session);
         text += trainingSessionService.getStatistics(session);
         return text;
     }
 
+    /**
+     * Вспомогательный метод для создания редактированного сообщения и присваивания ему айди чата и сообщения.
+     * @param update Объект Update с обновлением
+     * @return EditMessageText редактированное сообщение с необходимыми полямиы
+     */
     private EditMessageText setEditMessageChatId(Update update) {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(getChatId(update));
@@ -321,6 +433,12 @@ public class MessageBuilder {
         return editMessageText;
     }
 
+    /**
+     * Составление редактированного сообщения для режима запоминания.
+     * @param update Объект Update с обновлением
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return EditMessageText редактированное сообщение режима запоминания
+     */
     public EditMessageText showRememberModeMessage(Update update,
                                                    TrainingSessionService.TrainingSession session) {
         EditMessageText editMessageText = setEditMessageChatId(update);
@@ -329,11 +447,16 @@ public class MessageBuilder {
             editMessageText.setReplyMarkup(markupRememberMode(session));
         }
         else {
-            editMessageText.setText(endRememberModeMessage(session));
+            editMessageText.setText(endPlayModeMessage(session));
         }
         return editMessageText;
     }
 
+    /**
+     * Составление редактированного сообщения о несуществующей/недоступной сессии
+     * @param update Объект Update с обновлением
+     * @return EditMessageText редактированное сообщение недоступной сессии
+     */
     public EditMessageText failedSessionMessage(Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
         editMessageText.setText(MessageTexts.getMessage("message.wrong_session"));
@@ -342,12 +465,23 @@ public class MessageBuilder {
 
     }
 
+    /**
+     * Составление нового сообщения о несуществующей/недоступной сессии
+     * @param update Объект Update с обновлением
+     * @return новое сообщение недоступной сессии
+     */
     public SendMessage failedSessionNewMessage(Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText(MessageTexts.getMessage("message.wrong_session"));
         return sendMessage;
     }
 
+    /**
+     * Составление нового сообщения с режимом теста
+     * @param update Объект Update с обновлением
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return SendMessage - новое сообщение режима теста
+     */
     public SendMessage showTestModeMessage(Update update,
                                            TrainingSessionService.TrainingSession session) {
         SendMessage sendMessage = setNewMessageChatId(update);
@@ -355,12 +489,17 @@ public class MessageBuilder {
             sendMessage.setText(textTestMode(session));
             sendMessage.setReplyMarkup(markupTestMode());
         } else {
-            sendMessage.setText(endRememberModeMessage(session));
+            sendMessage.setText(endPlayModeMessage(session));
         }
 
         return sendMessage;
     }
 
+    /**
+     * Составление текста сообщения режима теста.
+     * @param session Объект TrainingSession с состоянием текущей сессии
+     * @return String - текст сообщения режима теста
+     */
     private String textTestMode(TrainingSessionService.TrainingSession session) {
         String text = showPreviousAnswer(session);
 
@@ -376,6 +515,10 @@ public class MessageBuilder {
         return text;
     }
 
+    /**
+     * Составление инлайна (кнопок сообщения) для режима теста
+     * @return InlineKeyboardMarkup - инлайн режима теста
+     */
     private InlineKeyboardMarkup markupTestMode() {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
@@ -387,6 +530,12 @@ public class MessageBuilder {
         return inlineKeyboardMarkup;
     }
 
+    /**
+     * Составление редактированного сообщения с настройками.
+     * @param setting Объект ShowMode с текущей настройкой
+     * @param update Объект Update с обновлением
+     * @return EditMessageText - редактированное сообщение с настройками
+     */
     public EditMessageText settingsMessage(ShowMode setting, Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
         String text = MessageTexts.getMessage("message.settings",

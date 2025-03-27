@@ -8,6 +8,9 @@ import ru.kaushina.dictionaryBot.model.enums.UserState;
 
 import java.sql.Timestamp;
 
+/**
+ * Сущность пользователя.
+ */
 @Entity(name="users")
 @Getter
 @Setter

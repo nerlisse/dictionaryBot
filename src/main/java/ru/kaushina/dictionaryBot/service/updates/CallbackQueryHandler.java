@@ -13,7 +13,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.handlers.MessageBuilder;
 import ru.kaushina.dictionaryBot.handlers.MessageHandler;
-import ru.kaushina.dictionaryBot.handlers.MessageTexts;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
@@ -23,6 +23,9 @@ import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Сервис обработки callback-ов от пользователя.
+ */
 @Slf4j
 @Service
 public class CallbackQueryHandler {
@@ -37,7 +40,7 @@ public class CallbackQueryHandler {
     @Autowired
     private UserService userService;
 
-
+    /**Словарь callback-ов и соответствующим их обработчиков */
     private final Map<String, CheckedConsumer<Update>> callbackHandlers;
     public CallbackQueryHandler() {
 
@@ -60,11 +63,21 @@ public class CallbackQueryHandler {
         callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
     }
+
+    /**
+     * Отправка редактированного сообщения.
+     * @param editMessage редактированное сообщение
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
         messageSender.executeEditMessageText(editMessage);
     }
 
-
+    /**
+     * Редактирование неактуального (не последнего сообщения) на недоступность.
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void executeFailedEditMessage(Update update) throws TelegramApiException {
         EditMessageText messageText = new EditMessageText();
         messageText.setChatId(update.getCallbackQuery().getMessage().getChatId());
@@ -73,6 +86,11 @@ public class CallbackQueryHandler {
         messageSender.executeEditMessageText(messageText);
     }
 
+    /**
+     * Обработчик получения callback-а и передача соответствующему методу.
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     public void handleCallbackQuery(Update update) throws TelegramApiException {
         String callbackData = update.getCallbackQuery().getData();
         long chatId = update.getCallbackQuery().getMessage().getChatId();
@@ -107,36 +125,66 @@ public class CallbackQueryHandler {
 
     }
 
+    /**
+     * Обработчик попадания на главный экран и вывод соответствующего сообщения.
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void homeCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.homeHandler(update);
         SendMessage sendMessage = messageBuilder.getHomeMessage(update); //build a message
         executeNewMessage(sendMessage); //execute the message
     }
 
+    /**
+     * Обработчик начала создания папки (нажата кнопка "создать новую папку").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void createFolderCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.createFolderHandler(update);
         SendMessage sendMessage = messageBuilder.createFolderMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик удаления папки (нажата кнопка "удалить папку").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void deleteFolderCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.deleteFolderHandler(update);
         SendMessage sendMessage = messageBuilder.getHomeMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик показа меню папки (нажата кнопка какой-то папки).
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void showFolderCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.showFolderHandler(update);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик начала добавления слова (нажата кнопка "добавить слово").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void addWordCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.askToAddWordHandler(update);
         SendMessage sendMessage = messageBuilder.addWordMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик показа слов в папке (нажата кнопка "показать все слова").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void showWordsCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.showWordsHandler(update);
         SendMessage sendMessage = messageBuilder.showWordsMessage(update);
@@ -146,12 +194,22 @@ public class CallbackQueryHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик начала удаления слова из папки (нажата кнопка "удалить папку").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void deleteWordCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.askToDeleteWordHandler(update);
         SendMessage sendMessage = messageBuilder.deleteWordMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик начала режима запоминания (нажата кнопка "режим запоминания").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void startRememberModeCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
         SendMessage sendMessage;
@@ -166,12 +224,23 @@ public class CallbackQueryHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик досрочного завершения игрового режима (нажата кнопку "закончить игру").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void endPlayModeCallbackHandler(Update update) throws TelegramApiException {
         messageHandler.endPlayModeHandler(update);
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Обработчик получения callback- на недоступную сессию
+     * (нажата любая из кнопок игрового режима для недоступной сессии).
+     * @param update
+     * @throws TelegramApiException
+     */
     private void failedCallbackSessionHandler(Update update) throws TelegramApiException {
         messageHandler.endPlayModeHandler(update);
         EditMessageText message = messageBuilder.failedSessionMessage(update);
@@ -181,7 +250,11 @@ public class CallbackQueryHandler {
         executeNewMessage(sendMessage);
     }
 
-
+    /**
+     * Обработчик ответа на режим запоминания (нажата кнопка "показать ответ" в режиме запоминания").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void changeAnswerVisibilityCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.changeAnswerHandler(update);
         if (session != null) {
@@ -193,7 +266,11 @@ public class CallbackQueryHandler {
         }
     }
 
-
+    /**
+     * Обработчик ответов в режиме запоминания (нажата кнопка "помню"/"не помню").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void answerRememberModeHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession session = messageHandler.answerRememberModeHandler(update);
         if (session != null) {
@@ -211,6 +288,11 @@ public class CallbackQueryHandler {
 
     }
 
+    /**
+     * Обработчик старта тестового режима (нажата кнопка "режим теста").
+     * @param update Объект Update c обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void startTestModeCallbackHandler(Update update) throws TelegramApiException {
         TrainingSessionService.TrainingSession started = messageHandler.startPlayModeHandler(update);
         SendMessage sendMessage;
@@ -225,11 +307,21 @@ public class CallbackQueryHandler {
         executeNewMessage(sendMessage);
     }
 
+    /**
+     * Метод для отправки новых сообщений и присваивания последнего сообщения пользователю.
+     * @param sendMessage сообщение для отправки
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
         Message sentMessage = messageSender.executeMessage(sendMessage);
         userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
     }
 
+    /**
+     * Обработчик ответов в меню настроек (нажата кнопка "настройки"/"поменять значение настроек").
+     * @param update
+     * @throws TelegramApiException
+     */
     private void settingsCallbackHandler(Update update) throws TelegramApiException {
         ShowMode setting = messageHandler.settingsHandler(update);
         if (update.getCallbackQuery().getData().equals("SHOW FOLDER")) {

@@ -13,6 +13,15 @@ import ru.kaushina.dictionaryBot.service.WordService;
 
 import java.util.Optional;
 
+/**
+ * Основной обработчик сообщений для бота, управляющий взаимодействиями с пользователем.
+ * Обрабатывает входящие обновления от Telegram и делегирует действия соответствующим сервисам.
+ * <p>Обработчик координирует работу между несколькими сервисами.
+ * @see UserService
+ * @see FolderService
+ * @see WordService
+ * @see TrainingSessionService
+ */
 @Slf4j
 @Component
 public class MessageHandler {
@@ -29,6 +38,11 @@ public class MessageHandler {
         this.trainingSessionService = trainingSessionService;
     }
 
+    /**
+     * Обрабатывает команду /start от пользователей.
+     * Регистрирует пользователя, сбрасывает его состояние в главное меню и очищает все текущие операции.
+     * @param update Объект Update от Telegram, содержащий сообщение /start
+     */
     //pressing start command
     public void startCommandHandler(Update update) {
         userService.registerUser(update);
@@ -39,6 +53,10 @@ public class MessageHandler {
         trainingSessionService.endTrainingSession(chatId);
     }
 
+    /**
+     * Возвращает пользователя в главное меню из любого состояния.
+     * @param update Объект Update от Telegram, содержащий callback или сообщение, отправляющее на главную страницу
+     */
     public void homeHandler(Update update) {
         Long chatId;
         if (update.hasMessage()) {
@@ -52,14 +70,22 @@ public class MessageHandler {
         wordService.cancelAddingWord(chatId);
     }
 
-    //pressing create folder
+    /**
+     * Начинает процесс создания папки.
+     * @param update Объект Update с callback-ом создания папки
+     */
     public void createFolderHandler(Update update) {
         //setting state to CREATE_FOLDER
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.CREATE_FOLDER);
     }
 
-    // folder creating
+    /**
+     * Обрабатывает создание папки с указанным именем с учетом валидности имени.
+     * @param update Объект Update с названием папки
+     * @return Созданный объект Folder или null, если создание не удалось
+     * @throws IllegalArgumentException если имя папки пустое
+     */
     public Folder folderCreationHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         String folderName = update.getMessage().getText();
@@ -88,13 +114,20 @@ public class MessageHandler {
         return folder;
     }
 
+    /**
+     * Показывает содержимое конкретной папки пользователю и устанавливает соответствующее состояние.
+     * @param update Объект Update с callback-ом выбора папки или возвращения в ее меню
+     */
     public void showFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         userService.setCurrentFolderId(chatId, update.getCallbackQuery().getData());
     }
 
-
+    /**
+     * Удаляет текущую выбранную папку.
+     * @param update Объект Update с callback-ом на удаление
+     */
     public void deleteFolderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
@@ -104,12 +137,20 @@ public class MessageHandler {
         userService.setCurrentFolderId(chatId, null);
     }
 
-    //user asked to add word, can't resist
+    /**
+     * Начинает процесс добавления слова.
+     * @param update Объект Update с callback-ом на добавление слова
+     */
     public void askToAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 
+    /**
+     * Обрабатывает добавление термина
+     * @param update Объект Update с ключевым словом
+     * @return true если слово успешно добавлено, false в противном случае
+     */
     public boolean addKeywordHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         String key = update.getMessage().getText();
@@ -122,6 +163,11 @@ public class MessageHandler {
         return false;
     }
 
+    /**
+     * Обрабатывает значение при добавлении слова и завершает процесс создания.
+     * @param update Объект Update со значением слова
+     * @return Созданный объект Word или null, если создание не удалось
+     */
     public Word addValueHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         String value = update.getMessage().getText();
@@ -139,16 +185,29 @@ public class MessageHandler {
         return word;
     }
 
+    /**
+     * Отображает все слова в текущей папке пользователю.
+     * @param update Объект Update, инициирующий отображение слов
+     */
     public void showWordsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         log.info("Showing words from folder {} to user {}", userService.getCurrentFolderId(chatId) ,chatId);
     }
 
+    /**
+     * Начинает процесс удаления слова.
+     * @param update Объект Update с callback-ом на удаление слова
+     */
     public void askToDeleteWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.DELETE_WORD);
     }
 
+    /**
+     * Обрабатывает удаление слова на основе ввода пользователя.
+     * @param update Объект Update со словом для удаления
+     * @return true если слово успешно удалено, false в противном случае
+     */
     public boolean deleteWordHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
@@ -158,6 +217,11 @@ public class MessageHandler {
         return deleted;
     }
 
+    /**
+     * Начинает тренировку в режиме запоминания или тестирования.
+     * @param update Объект Update с выбором режима тренировки
+     * @return Созданный объект TrainingSession или null, если сессия не создалась
+     */
     public TrainingSessionService.TrainingSession startPlayModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Long folderId = userService.getCurrentFolderId(chatId);
@@ -171,6 +235,10 @@ public class MessageHandler {
         return started;
     }
 
+    /**
+     * Завершает текущую тренировку и возвращает к просмотру папки.
+     * @param update Объект Update с callback-ом или любым сообщением на завершение тренировки
+     */
     public void endPlayModeHandler(Update update) {
         Long chatId;
         if (update.hasCallbackQuery()) {
@@ -183,6 +251,11 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
     }
 
+    /**
+     * Переключает видимость ответов во время тренировки.
+     * @param update Объект Update с запросом на переключение
+     * @return Обновленный объект TrainingSession
+     */
     public TrainingSessionService.TrainingSession changeAnswerHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         TrainingSessionService.TrainingSession session = trainingSessionService.getSession(chatId);
@@ -190,18 +263,33 @@ public class MessageHandler {
         return session;
     }
 
+    /**
+     * Обрабатывает ответ пользователя в режиме запоминания.
+     * @param update Объект Update с ответом пользователя
+     * @return Обновленный объект TrainingSession
+     */
     public TrainingSessionService.TrainingSession answerRememberModeHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         String callbackData = update.getCallbackQuery().getData();
         return trainingSessionService.answerRememberMode(chatId, callbackData);
     }
 
+    /**
+     * Обрабатывает ответ пользователя в режиме тестирования.
+     * @param update Объект Update с ответом пользователя
+     * @return Обновленный объект TrainingSession
+     */
     public TrainingSessionService.TrainingSession answerTestModeHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         String message = update.getMessage().getText();
         return trainingSessionService.answerTestMode(chatId, message);
     }
 
+    /**
+     * Обрабатывает изменения настроек пользователя.
+     * @param update Объект Update с изменением настроек
+     * @return Новый ShowMode после применения изменений
+     */
     public ShowMode settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return userService.changeSetting(chatId, update.getCallbackQuery().getData());

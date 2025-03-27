@@ -4,6 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+/**
+ * Сущность, представляющая слово.
+ */
 @Entity(name="words")
 @Getter
 @Setter
