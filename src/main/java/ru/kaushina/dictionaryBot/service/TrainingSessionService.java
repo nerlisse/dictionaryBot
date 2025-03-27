@@ -10,6 +10,9 @@ import ru.kaushina.dictionaryBot.service.TrainingSessionService.TrainingSession.
 
 import java.util.*;
 
+/**
+ * Сервис работы с игровыми сессиями.
+ */
 @Service
 public class TrainingSessionService {
 
@@ -18,6 +21,9 @@ public class TrainingSessionService {
     private final WordService wordService;
     private final UserService userService;
 
+    /**
+     * Класс сессии, содержащий всю информацию о сессии.
+     */
     @Data
     @Builder
     public static class TrainingSession {
@@ -33,6 +39,9 @@ public class TrainingSessionService {
         private boolean showAnswer;
         private boolean isOver;
 
+        /**
+         * Класс слова в составе сессии.
+         */
         @Data
         @Builder
         public static class SessionWord {
@@ -48,6 +57,13 @@ public class TrainingSessionService {
         this.userService = userService;
     }
 
+    /**
+     * Создание игровой сессии.
+     * @param chatId идентификатор пользователя, начавшего сессию
+     * @param folderId идентификатор папки
+     * @param callbackData строка с игровым режимом
+     * @return TrainingSession - объект сессии в случае успешного создания, иначе {@code null}
+     */
     public TrainingSession createTrainingSession(Long chatId, Long folderId, String callbackData) {
 
         List<SessionWord> sessionWords = shuffleWords(chatId, folderId);
@@ -70,6 +86,12 @@ public class TrainingSessionService {
         return session;
     }
 
+    /**
+     * Перемешивает слова в папке для игрового режима.
+     * @param chatId идентификатор пользователя, начавшего сессию
+     * @param folderId идентификатор папки
+     * @return List<SessionWord> список перемешанных слов, {@code null} если папка пустая
+     */
     private List<SessionWord> shuffleWords(Long chatId, Long folderId) {
         List<Word> words = folderService.getFolderWords(folderId);
         if (sessions.containsKey(chatId) || words.isEmpty()) {
@@ -87,14 +109,29 @@ public class TrainingSessionService {
         return sessionWords;
     }
 
+    /**
+     * Окончание игровой сессии.
+     * @param chatId идентификатор пользователя
+     */
     public void endTrainingSession(Long chatId) {
         sessions.remove(chatId);
     }
 
+    /**
+     * Получение игровой сессии пользователя.
+     * @param chatId идентификатор пользователя
+     * @return TrainingSession - текущая сессия пользователя, {@code null} если ее нет
+     */
     public TrainingSession getSession(Long chatId) {
         return sessions.get(chatId);
     }
 
+    /**
+     * Обработчик ответа на режим запоминания.
+     * @param chatId идентификатор пользователя
+     * @param callbackData ответ пользователя (помню/не помню)
+     * @return TrainingSession - текущая сессия
+     */
     public TrainingSession answerRememberMode(Long chatId, String callbackData) {
         TrainingSession session = getSession(chatId);
         if (session == null) return null;
@@ -108,6 +145,12 @@ public class TrainingSessionService {
         return session;
     }
 
+    /**
+     * Обработчик ответа на режим теста.
+     * @param chatId идентификатор пользователя
+     * @param message ответ пользователя
+     * @return TrainingSession - текущая сессия
+     */
     public TrainingSession answerTestMode(Long chatId, String message) {
         TrainingSessionService.TrainingSession session = getSession(chatId);
         if (session == null) return null;
@@ -131,6 +174,11 @@ public class TrainingSessionService {
         return session;
     }
 
+    /**
+     * Получает статистику сессии.
+     * @param session законченная сессия
+     * @return String - текст со статистикой
+     */
     public String getStatistics(TrainingSession session) {
         String text = "";
         text += "Training is over! Your results: ";
