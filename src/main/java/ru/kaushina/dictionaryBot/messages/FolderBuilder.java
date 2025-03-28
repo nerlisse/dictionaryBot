@@ -232,4 +232,16 @@ public class FolderBuilder implements IMessageBuilder {
         return editMessageText;
     }
 
+    public SendMessage getEasterEggMessage(Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage("message.easter_egg"));
+        return sendMessage;
+    }
+
+    public SendMessage getEasterEgg2Message(Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage("message.easter_egg2"));
+        return sendMessage;
+    }
+
 }
