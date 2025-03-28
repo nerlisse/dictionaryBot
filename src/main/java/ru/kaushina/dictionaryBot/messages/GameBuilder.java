@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.builders;
+package ru.kaushina.dictionaryBot.messages;
 
 import org.springframework.stereotype.Component;
 

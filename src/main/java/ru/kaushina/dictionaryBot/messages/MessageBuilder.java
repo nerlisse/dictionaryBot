@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.builders;
+package ru.kaushina.dictionaryBot.messages;
 
 
 import lombok.extern.slf4j.Slf4j;

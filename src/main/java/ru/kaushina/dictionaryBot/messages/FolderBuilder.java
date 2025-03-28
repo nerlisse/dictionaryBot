@@ -1,4 +1,4 @@
-package ru.kaushina.dictionaryBot.builders;
+package ru.kaushina.dictionaryBot.messages;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,12 +16,50 @@ import java.util.List;
  * Класс, ответственный за построение сообщений, связанных с папками.
  */
 @Component
-public class FolderBuilder {
+public class FolderBuilder implements IMessageBuilder {
 
     private final FolderService folderService;
 
     public FolderBuilder(FolderService folderService) {
         this.folderService = folderService;
+    }
+
+    /**
+     * Вспомогательный метод для создания нового сообщения и присваивания ему chatId получателя.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение
+     */
+    public SendMessage setNewMessageChatId(Update update) {
+        SendMessage sendMessage = new SendMessage();
+        Long chatId = getChatId(update);
+        sendMessage.setChatId(chatId);
+        return sendMessage;
+    }
+
+    /**
+     * Вспомогательный метод для нахождения chatId пользователя из текстового сообщения или callback-а.
+     * @param update Объект Update с обновлением
+     * @return Long - идентификатор чата с пользователем
+     */
+    public Long getChatId(Update update) {
+        Long chatId;
+        if (update.hasCallbackQuery()) {
+            chatId = update.getCallbackQuery().getMessage().getChatId();
+        } else chatId = update.getMessage().getChatId();
+        return chatId;
+    }
+
+    /**
+     * Вспомогательный метод для создания инлайн-кнопки.
+     * @param text текст кнопки
+     * @param callbackData callback, присваиваемый кнопке
+     * @return InlineKeyboardButton готовый объект кнопки
+     */
+    public InlineKeyboardButton createButton(String text, String callbackData) {
+        InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
+        inlineKeyboardButton.setText(text);
+        inlineKeyboardButton.setCallbackData(callbackData);
+        return inlineKeyboardButton;
     }
 
     /**
