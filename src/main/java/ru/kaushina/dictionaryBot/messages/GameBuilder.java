@@ -15,6 +15,9 @@ import ru.kaushina.dictionaryBot.util.MessageTexts;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Класс, отвечающий за постройку сообщений для игровых режимов.
+ */
 @Component
 public class GameBuilder implements IMessageBuilder {
 

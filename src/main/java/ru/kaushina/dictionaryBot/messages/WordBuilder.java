@@ -11,6 +11,9 @@ import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.List;
 
+/**
+ * Класс, отвечающий за постройку сообщений для добавления, удаления, вывода слов.
+ */
 @Component
 public class WordBuilder implements IMessageBuilder {
 
