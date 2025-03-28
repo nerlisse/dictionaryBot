@@ -305,4 +305,9 @@ public class MessageHandler {
         reminderService.deleteReminder(chatId);
         return null;
     }
+
+    public Reminder toggleReminderHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        return reminderService.changeEnabling(chatId);
+    }
 }

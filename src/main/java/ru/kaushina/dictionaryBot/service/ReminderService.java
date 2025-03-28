@@ -72,4 +72,11 @@ public class ReminderService {
     public void deleteReminder(Long chatId) {
         reminderRepository.delete(reminderRepository.findReminderByUser_ChatId(chatId));
     }
+
+    public Reminder changeEnabling(Long chatId) {
+        Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
+        if (reminder == null) return null;
+        reminder.setEnabled(!reminder.isEnabled());
+        return reminderRepository.save(reminder);
+    }
 }

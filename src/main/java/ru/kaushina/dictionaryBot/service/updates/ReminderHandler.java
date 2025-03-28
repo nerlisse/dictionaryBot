@@ -80,7 +80,10 @@ public class ReminderHandler {
         executeEditMessage(editMessageText);
     }
 
-    private void reminderToggleHandler(Update update) {
+    private void reminderToggleHandler(Update update) throws TelegramApiException {
+        Reminder reminder = messageHandler.toggleReminderHandler(update);
+        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
+        executeEditMessage(editMessageText);
     }
 
     private void reminderEditHandler(Update update) {
