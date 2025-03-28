@@ -68,4 +68,8 @@ public class ReminderService {
         LocalTime time = reminder.getTime();
         return String.format("%02d:%02d", time.getHour(), time.getMinute());
     }
+
+    public void deleteReminder(Long chatId) {
+        reminderRepository.delete(reminderRepository.findReminderByUser_ChatId(chatId));
+    }
 }

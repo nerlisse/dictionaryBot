@@ -299,4 +299,10 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.REMINDER);
         return reminderService.getReminder(chatId);
     }
+
+    public Reminder deleteReminder(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        reminderService.deleteReminder(chatId);
+        return null;
+    }
 }

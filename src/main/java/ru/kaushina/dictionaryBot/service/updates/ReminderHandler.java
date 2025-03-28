@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -63,8 +64,20 @@ public class ReminderHandler {
         userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
     }
 
+    /**
+     * Отправка редактированного сообщения.
+     * @param editMessage редактированное сообщение
+     * @throws TelegramApiException при ошибке отправки
+     */
+    private void executeEditMessage(EditMessageText editMessage) throws TelegramApiException {
+        messageSender.executeEditMessageText(editMessage);
+    }
 
-    private void reminderDeleteHandler(Update update) {
+
+    private void reminderDeleteHandler(Update update) throws TelegramApiException {
+        Reminder reminder = messageHandler.deleteReminder(update);
+        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
+        executeEditMessage(editMessageText);
     }
 
     private void reminderToggleHandler(Update update) {

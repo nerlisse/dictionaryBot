@@ -2,6 +2,7 @@ package ru.kaushina.dictionaryBot.messages;
 
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -65,6 +66,20 @@ public class ReminderBuilder implements IMessageBuilder {
 
     public SendMessage reminderMenu(Update update, Reminder reminder) {
         SendMessage message = setNewMessageChatId(update);
+        message.setText(textReminderMenu(reminder));
+        message.setReplyMarkup(markupReminderMenu(reminder));
+        return message;
+    }
+
+    private EditMessageText setEditMessageChatId(Update update) {
+        EditMessageText editMessageText = new EditMessageText();
+        editMessageText.setChatId(getChatId(update));
+        editMessageText.setMessageId(update.getCallbackQuery().getMessage().getMessageId());
+        return editMessageText;
+    }
+
+    public EditMessageText editReminderMenu(Update update, Reminder reminder) {
+        EditMessageText message = setEditMessageChatId(update);
         message.setText(textReminderMenu(reminder));
         message.setReplyMarkup(markupReminderMenu(reminder));
         return message;
