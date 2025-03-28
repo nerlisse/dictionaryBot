@@ -1,6 +1,8 @@
 package ru.kaushina.dictionaryBot.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalTime;
 
@@ -8,6 +10,8 @@ import java.time.LocalTime;
  * Сущность напоминания для пользователя.
  */
 @Entity(name="reminders")
+@Getter
+@Setter
 public class Reminder {
 
     @Id

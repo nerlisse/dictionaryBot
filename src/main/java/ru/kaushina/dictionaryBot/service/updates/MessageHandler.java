@@ -6,10 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.*;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
-import ru.kaushina.dictionaryBot.service.FolderService;
-import ru.kaushina.dictionaryBot.service.TrainingSessionService;
-import ru.kaushina.dictionaryBot.service.UserService;
-import ru.kaushina.dictionaryBot.service.WordService;
+import ru.kaushina.dictionaryBot.service.*;
 
 import java.util.Optional;
 
@@ -30,12 +27,14 @@ public class MessageHandler {
     private final FolderService folderService;
     private final WordService wordService;
     private final TrainingSessionService trainingSessionService;
+    private final ReminderService reminderService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, ReminderService reminderService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
         this.trainingSessionService = trainingSessionService;
+        this.reminderService = reminderService;
     }
 
     /**
@@ -293,5 +292,11 @@ public class MessageHandler {
     public ShowMode settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return userService.changeSetting(chatId, update.getCallbackQuery().getData());
+    }
+
+    public Reminder getReminderMenu(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.REMINDER);
+        return reminderService.getReminder(chatId);
     }
 }
