@@ -1,13 +1,12 @@
 package ru.kaushina.dictionaryBot.messages;
 
-import lombok.NonNull;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
-import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.model.Reminder;
 import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -19,12 +18,9 @@ import java.util.List;
 @Component
 public class ReminderBuilder implements IMessageBuilder {
 
-
-    private final UserService userService;
     private final ReminderService reminderService;
 
-    public ReminderBuilder(UserService userService, UserService userService1, ReminderService reminderService) {
-        this.userService = userService1;
+    public ReminderBuilder(ReminderService reminderService) {
         this.reminderService = reminderService;
     }
 
@@ -66,13 +62,24 @@ public class ReminderBuilder implements IMessageBuilder {
         return inlineKeyboardButton;
     }
 
+    /**
+     * Составление сообщения меню напоминаний (при нажатии на кнопку Напоминания).
+     * @param update Объект Update с обновлением
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @return SendMessage - новое сообщение с меню напоминаний
+     */
     public SendMessage reminderMenu(Update update, Reminder reminder) {
         SendMessage message = setNewMessageChatId(update);
-        message.setText(textReminderMenu(reminder, getChatId(update)));
+        message.setText(textReminderMenu(reminder, getChatId(update), update));
         message.setReplyMarkup(markupReminderMenu(reminder));
         return message;
     }
 
+    /**
+     * Вспомогательный метод для создания редактированного сообщения и присваивания ему айди чата и сообщения.
+     * @param update Объект Update с обновлением
+     * @return EditMessageText редактированное сообщение с необходимыми полями
+     */
     private EditMessageText setEditMessageChatId(Update update) {
         EditMessageText editMessageText = new EditMessageText();
         editMessageText.setChatId(getChatId(update));
@@ -80,15 +87,31 @@ public class ReminderBuilder implements IMessageBuilder {
         return editMessageText;
     }
 
+    /**
+     * Показывает меню напоминаний в предыдущем сообщении.
+     * @param update Объект Update с обновлением
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @return EditMessageText редактированное сообщение с необходимыми полями
+     */
     public EditMessageText editReminderMenu(Update update, Reminder reminder) {
         EditMessageText message = setEditMessageChatId(update);
-        message.setText(textReminderMenu(reminder, getChatId(update)));
+        message.setText(textReminderMenu(reminder, getChatId(update), update));
         message.setReplyMarkup(markupReminderMenu(reminder));
         return message;
     }
 
-    private String textReminderMenu(Reminder reminder, Long chatId) {
+    /**
+     * Составление текста сообщения с меню напоминаний.
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @param chatId идентификатор пользователя
+     * @param update Объект Update с обновлением
+     * @return String - текст сообщения
+     */
+    private String textReminderMenu(Reminder reminder, Long chatId, Update update) {
         String text = "";
+        if (!reminderService.checkValidTime(update.getMessage().getText())) {
+            text += MessageTexts.getMessage("message.failed_reminder");
+        }
         if (reminder != null) {
             String dayweeks = reminderService.getDays(reminder, chatId);
             String time = reminderService.getTime(reminder);
@@ -101,6 +124,11 @@ public class ReminderBuilder implements IMessageBuilder {
         return text;
     }
 
+    /**
+     * Создает кнопки-ответы для меню напоминаний.
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @return InlineKeyboardMarkup - разметка кнопок
+     */
     private InlineKeyboardMarkup markupReminderMenu(Reminder reminder) {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
@@ -125,6 +153,12 @@ public class ReminderBuilder implements IMessageBuilder {
         return inlineKeyboardMarkup;
     }
 
+    /**
+     * Редактирует сообщение с выбором дней недели при создании напоминания.
+     * @param update Объект Update с обновлением
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @return EditMessageText - редактированное сообщение
+     */
     public EditMessageText weekDaysAdder(Update update, Reminder reminder) {
         EditMessageText editMessageText = setEditMessageChatId(update);
         editMessageText.setText(textWeekDaysAdder(reminder, getChatId(update)));
@@ -132,13 +166,23 @@ public class ReminderBuilder implements IMessageBuilder {
         return editMessageText;
     }
 
-    //check in handler smth i dont re,ember
+    /**
+     * Создает текст сообщения с выбором дней недели при создании напоминания.
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @param chatId идентификатор пользователя
+     * @return String - текст сообщения
+     */
     private String textWeekDaysAdder(Reminder reminder, Long chatId) {
         return MessageTexts.getMessage("message.days_adder", reminderService.getDays(reminder, chatId));
 
     }
 
-
+    /**
+     * Создает разметку кнопок (ответы на сообщение) для выбора дней недели при создании напоминания.
+     * @param reminder напоминание пользователя, {@code null} если не создано
+     * @param chatId идентификатор пользователя
+     * @return InlineKeyboardMarkup - разметка кнопок
+     */
     private InlineKeyboardMarkup markupWeekDaysAdder(Reminder reminder, Long chatId) {
         List<String> days = reminderService.getDaysList(reminder, chatId);
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
@@ -177,10 +221,15 @@ public class ReminderBuilder implements IMessageBuilder {
         return inlineKeyboardMarkup;
     }
 
-
+    /**
+     * Создает сообщение, приглашающее к вводу времени для напоминания.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - сообщение с приглашением к вводу
+     */
     public SendMessage askToEnterTime(Update update) {
         SendMessage message = setNewMessageChatId(update);
         message.setText(MessageTexts.getMessage("message.enter_time"));
         return message;
     }
+
 }

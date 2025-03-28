@@ -1,6 +1,5 @@
 package ru.kaushina.dictionaryBot.service;
 
-import org.apache.tomcat.util.codec.binary.StringUtils;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.Reminder;
@@ -28,28 +27,67 @@ public class ReminderService {
         this.reminderRepository = reminderRepository;
     }
 
+    /**
+     * Получает напоминание пользователя по его идентификатору чата.
+     * @param chatId идентификатор пользователя
+     * @return Reminder - найденное напоминание, {@code null} иначе
+     */
     public Reminder getReminder(Long chatId) {
         return reminderRepository.findReminderByUser_ChatId(chatId);
     }
 
-    public Reminder createReminder(Long chatId) {
-        Reminder reminder = new Reminder();
-        reminder.setId(chatId);
+    /**
+     * Создает новое напоминание или редактирует существующее с учетом введенных данных.
+     * @param chatId идентификатор пользователя
+     * @param time значение времени напоминания
+     * @return Reminder - созданное напоминание, {@code null} иначе
+     */
+    public Reminder createReminder(Long chatId, String time) {
+        Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
+        if (reminder == null)  {
+            reminder = new Reminder();
+            reminder.setId(chatId);
+        }
         Integer days = remindersPending.get(chatId);
-        if (days == null) return null;
+        if (days == null) {
+            remindersPending.remove(chatId);
+            return null;
+        }
         reminder.setDaysOfWeek(days);
-        reminder.setTime(LocalTime.now()); //change later idk how to create em yet
+        reminder.setTime(LocalTime.parse(time));
         reminder.setEnabled(true);
         remindersPending.remove(chatId);
         return reminderRepository.save(reminder);
     }
 
+    /**
+     * Метод, проверяющий валидность введенного формата времени с помощью регулярного выражения.
+     * @param time - строка с введенным временем
+     * @return true, если строка удовлетворяет требованиям, иначе false
+     */
+    public boolean checkValidTime(String time) {
+        String regex = "^(?:[0-1][0-9]|[2][0-3]):(?:[0-5][0-9])$";
+        return time.matches(regex);
+    }
+
+    /**
+     * Получает выбранные дни недели в виде строки, дни разделены запятой.
+     * @param reminder напоминание, для которого ищутся дни недели
+     * @param chatId идентификатор пользователя
+     * @return String - дни недели через запятую или сообщение о том, что не выбран ни один день
+     */
     public String getDays(Reminder reminder, Long chatId) {
         List<String> days = getDaysList(reminder, chatId);
         if (!days.isEmpty()) return String.join(", ", days);
         else return MessageTexts.getMessage("message.no_days");
     }
 
+    /**
+     * Получает выбранные дни недели в виде списка строк.
+     * @param reminder напоминание, для которого ищутся дни недели
+     * @param chatId идентификатор пользователя
+     * @return List\<String\> - список выбранных дней недели
+     */
     public List<String> getDaysList(Reminder reminder, Long chatId) {
         int reminderDays;
         if (reminder != null)
@@ -68,6 +106,11 @@ public class ReminderService {
         return days;
     }
 
+    /**
+     * Возвращает состояние напоминания в виде строки.
+     * @param reminder напоминание, для которого находится состояние
+     * @return String - сообщение о состоянии напоминания
+     */
     public String isEnabled(Reminder reminder) {
         return (reminder.isEnabled() ? "Включен✅" : "Выключен❌");
     }
@@ -82,10 +125,19 @@ public class ReminderService {
         return String.format("%02d:%02d", time.getHour(), time.getMinute());
     }
 
+    /**
+     * Удаляет напоминание.
+     * @param chatId идентификатор пользователя
+     */
     public void deleteReminder(Long chatId) {
         reminderRepository.delete(reminderRepository.findReminderByUser_ChatId(chatId));
     }
 
+    /**
+     * Изменяет состояние напоминания (включен/выключен).
+     * @param chatId идентификатор пользователя
+     * @return Reminder - обновленное напоминание
+     */
     public Reminder changeEnabling(Long chatId) {
         Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
         if (reminder == null) return null;
@@ -93,18 +145,23 @@ public class ReminderService {
         return reminderRepository.save(reminder);
     }
 
-    public Integer getPendingReminders(Long chatId) {
-        return remindersPending.get(chatId);
-    }
-
-    public Reminder changeWeekDays(String callback, Long chatId) {
+    /**
+     * Изменяет выбранные пользователем дни недели во временной структуре на основе callback-ов.
+     * @param callback callback данные
+     * @param chatId идентификатор пользователя
+     */
+    public void changeWeekDays(String callback, Long chatId) {
         Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
         int days;
         if (reminder != null) {
-            days = reminder.getDaysOfWeek();
+            remindersPending.put(chatId, reminder.getDaysOfWeek());
+            days = remindersPending.get(chatId);
         } else if (remindersPending.containsKey(chatId)) {
             days = remindersPending.get(chatId);
-        } else return null;
+        } else {
+            remindersPending.put(chatId, 0);
+            days = 0;
+        }
         switch (callback) {
             case "MONDAY":
                 if ((days & 1) == 0) days |= 1;
@@ -137,14 +194,14 @@ public class ReminderService {
             default:
                 break;
         }
-        if (reminder != null) {
-            reminder.setDaysOfWeek(days);
-            return reminderRepository.save(reminder);
-        }
-        else remindersPending.put(chatId, days);
-        return null;
+        remindersPending.put(chatId, days);
     }
 
+    /**
+     * Проверяет, выбран ли хотя бы один день для перехода на следующий шаг.
+     * @param update Объект Update с обновлением
+     * @return true, если был выбран день, иначе false
+     */
     public boolean checkValidDays(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
@@ -154,5 +211,13 @@ public class ReminderService {
             return (remindersPending.get(chatId) != 0);
         }
         return false;
+    }
+
+    /**
+     * Отменяет создание/редактирование напоминания.
+     * @param chatId идентификатор пользователя
+     */
+    public void cancelReminder(Long chatId) {
+        remindersPending.remove(chatId);
     }
 }

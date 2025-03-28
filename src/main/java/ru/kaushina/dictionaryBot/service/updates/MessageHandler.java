@@ -49,6 +49,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         wordService.cancelAddingWord(chatId);
+        reminderService.cancelReminder(chatId);
         trainingSessionService.endTrainingSession(chatId);
     }
 
@@ -67,6 +68,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         wordService.cancelAddingWord(chatId);
+        reminderService.cancelReminder(chatId);
     }
 
     /**
@@ -294,25 +296,53 @@ public class MessageHandler {
         return userService.changeSetting(chatId, update.getCallbackQuery().getData());
     }
 
+    /**
+     * Обрабатывает нажатие на кнопку "Напоминания" (устанавливает состояние в REMINDER).
+     * @param update Объект Update с обновлением
+     * @return Reminder - напоминание пользователя, если уже создано, {@code null} иначе
+     */
     public Reminder getReminderMenu(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.REMINDER);
         return reminderService.getReminder(chatId);
     }
 
+    /**
+     * Удаляет напоминание пользователя.
+     * @param update Объект Update с обновлением
+     * @return {@code null} в любом случае, необходимо для корректного отображения меню
+     */
     public Reminder deleteReminder(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         reminderService.deleteReminder(chatId);
         return null;
     }
 
+    /**
+     * Переключатель включения/выключения напоминания.
+     * @param update Объект Update с обновлением
+     * @return Reminder - обновленное напоминание
+     */
     public Reminder toggleReminderHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return reminderService.changeEnabling(chatId);
     }
 
-//    public void createReminderStart(Update update) {
-//        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-//        userService.setUserState(chatId, UserState.REMINDER_EDIT);
-//    }
+    /**
+     * Обрабатывает ввод времени, проверяет его на валидность, в случае отказа не создает ничего.
+     * @param update Объект Update с обновлением
+     * @return Reminder - успешно созданное напоминание, иначе {@code null}
+     */
+    public Reminder addTimeHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        String time = update.getMessage().getText();
+        boolean valid = reminderService.checkValidTime(time);
+        Reminder reminder = null;
+        if (valid) {
+            reminder = reminderService.createReminder(chatId, time);
+        }
+        userService.setUserState(chatId, UserState.REMINDER);
+        return reminder;
+    }
+
 }

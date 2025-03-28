@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.ReminderBuilder;
 import ru.kaushina.dictionaryBot.model.Reminder;
+import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
@@ -18,6 +19,9 @@ import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Обработчик callback-запросов, полученных в настройках напоминаний.
+ */
 @Slf4j
 @Component
 public class ReminderHandler {
@@ -55,12 +59,22 @@ public class ReminderHandler {
         this.reminderBuilder = reminderBuilder;
     }
 
+    /**
+     * Передает в обработку методам соответственно callback-у.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     public void handleUpdate(Update update) throws TelegramApiException {
         String callback = update.getCallbackQuery().getData();
         CheckedConsumer<Update> handler = callbackHandlers.get(callback);
         handler.accept(update);
     }
 
+    /**
+     * Показывает экран напоминаний.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void reminderMenuHandler(Update update) throws TelegramApiException {
         Reminder reminder = messageHandler.getReminderMenu(update);
         SendMessage message = reminderBuilder.reminderMenu(update, reminder);
@@ -86,41 +100,73 @@ public class ReminderHandler {
         messageSender.executeEditMessageText(editMessage);
     }
 
-
+    /**
+     * Обработчик удаления имеющегося напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void reminderDeleteHandler(Update update) throws TelegramApiException {
         Reminder reminder = messageHandler.deleteReminder(update);
         EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
         executeEditMessage(editMessageText);
     }
 
+    /**
+     * Обработчик включения/выключения напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void reminderToggleHandler(Update update) throws TelegramApiException {
         Reminder reminder = messageHandler.toggleReminderHandler(update);
         EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
         executeEditMessage(editMessageText);
     }
 
-    private void reminderEditHandler(Update update) {
+    /**
+     * Обработчик редактирования имеющегося напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
+    private void reminderEditHandler(Update update) throws TelegramApiException {
+        Reminder reminder = reminderService.getReminder(update.getCallbackQuery().getMessage().getChatId());
+        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
+        executeEditMessage(editMessageText);
     }
 
+    /**
+     * Обработчик начала создания нового напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void reminderCreateHandler(Update update) throws TelegramApiException {
         EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, null);
         executeEditMessage(editMessageText);
     }
 
-
+    /**
+     * Обработчик выбора дней недели при создании/редактировании напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void editWeekDayHandler(Update update) throws TelegramApiException {
         String callback = update.getCallbackQuery().getData().split("_")[1];
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        Reminder reminder = reminderService.changeWeekDays(callback, chatId);
-        EditMessageText editMessageText = reminderBuilder.weekDaysAdder(update, reminder);
+        reminderService.changeWeekDays(callback, chatId);
+        EditMessageText editMessageText = reminderBuilder.weekDaysAdder(update, null);
         executeEditMessage(editMessageText);
     }
 
-
+    /**
+     * Обработчик перехода к вводу времени при создании напоминания. Ничего не делает, если не выбран ни один день.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
     private void weekDayDoneHandler(Update update) throws TelegramApiException {
         boolean done = reminderService.checkValidDays(update);
         if (!done) return;
         SendMessage sendMessage = reminderBuilder.askToEnterTime(update);
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.REMINDER_EDIT);
         executeNewMessage(sendMessage);
     }
 

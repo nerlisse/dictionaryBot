@@ -5,12 +5,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.MessageBuilderFacade;
+import ru.kaushina.dictionaryBot.messages.ReminderBuilder;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.Reminder;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
@@ -41,6 +44,7 @@ public class TextMessageHandler {
     private MessageHandler messageHandler;
 
     private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
+    private ReminderBuilder reminderBuilder;
 
     public TextMessageHandler() {
 
@@ -51,8 +55,7 @@ public class TextMessageHandler {
         stateHandlers.put(UserState.ADD_VALUE, this::addValueHandler);
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
         stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
-
-
+        stateHandlers.put(UserState.REMINDER_EDIT, this::enterTimeHandler);
     }
 
     /**
@@ -218,4 +221,17 @@ public class TextMessageHandler {
         SendMessage sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
+
+
+    /**
+     * Обработчик ввода времени для напоминания.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
+    private void enterTimeHandler(Update update) throws TelegramApiException {
+        Reminder reminder = messageHandler.addTimeHandler(update);
+        SendMessage message = reminderBuilder.reminderMenu(update, reminder);
+        executeNewMessage(message);
+    }
+
 }
