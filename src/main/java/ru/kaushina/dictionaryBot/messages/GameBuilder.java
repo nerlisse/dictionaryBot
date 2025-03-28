@@ -111,21 +111,21 @@ public class GameBuilder implements IMessageBuilder {
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
 
         List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(createButton(MessageTexts.getMessage("message.remember"), "REMEMBER"));
-        row.add(createButton(MessageTexts.getMessage("message.not_remember"), "DO NOT REMEMBER"));
+        row.add(createButton(MessageTexts.getMessage("button.remember"), "REMEMBER"));
+        row.add(createButton(MessageTexts.getMessage("button.not_remember"), "DO NOT REMEMBER"));
         rowsInLine.add(row);
 
         row = new ArrayList<>();
         if (session.isShowAnswer()) {
-            row.add(createButton(MessageTexts.getMessage("message.hide_answer"), "SHOW ANSWER"));
+            row.add(createButton(MessageTexts.getMessage("button.hide_answer"), "SHOW ANSWER"));
         }
         else {
-            row.add(createButton(MessageTexts.getMessage("message.show_answer"), "HIDE ANSWER"));
+            row.add(createButton(MessageTexts.getMessage("button.show_answer"), "HIDE ANSWER"));
         }
         rowsInLine.add(row);
 
         row = new ArrayList<>();
-        row.add(createButton(MessageTexts.getMessage("message.end_practice"), "END PLAY"));
+        row.add(createButton(MessageTexts.getMessage("button.end_practice"), "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);
@@ -279,7 +279,7 @@ public class GameBuilder implements IMessageBuilder {
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
-        row.add(createButton(MessageTexts.getMessage("message.end_practice"), "END PLAY"));
+        row.add(createButton(MessageTexts.getMessage("button.end_practice"), "END PLAY"));
         rowsInLine.add(row);
 
         inlineKeyboardMarkup.setKeyboard(rowsInLine);

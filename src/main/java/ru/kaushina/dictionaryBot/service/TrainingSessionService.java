@@ -7,6 +7,7 @@ import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.model.enums.TrainingMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService.TrainingSession.SessionWord;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.*;
 
@@ -180,13 +181,8 @@ public class TrainingSessionService {
      * @return String - текст со статистикой
      */
     public String getStatistics(TrainingSession session) {
-        String text = "";
-        text += "Training is over! Your results: ";
-        text += "\nWords in total: " + session.getFolderSize();
-        text += "\nWords Remembered: " + session.getSuccessfulCount();
         double percentage = (session.getSuccessfulCount() * 100.0) / session.getFolderSize();
-        text += "\nPercentage of remembered words: " + String.format("%.2f", percentage) + "%";
-        text += "\n\n Good job! Keep it up!";
-        return text;
+        return MessageTexts.getMessage("message.statistics", session.getFolderSize(), session.getSuccessfulCount(),
+                String.format("%.2f", percentage));
     }
 }

@@ -219,8 +219,8 @@ public class FolderBuilder implements IMessageBuilder {
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
 
-        row.add(createButton(MessageTexts.getMessage("message.change_term"), "SHOW KEY"));
-        row.add(createButton(MessageTexts.getMessage("message.change_meaning"), "SHOW VALUE"));
+        row.add(createButton(MessageTexts.getMessage("button.change_term"), "SHOW KEY"));
+        row.add(createButton(MessageTexts.getMessage("button.change_meaning"), "SHOW VALUE"));
         rowsInLine.add(row);
 
         row = new ArrayList<>();
