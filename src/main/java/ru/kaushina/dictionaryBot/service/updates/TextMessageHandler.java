@@ -9,7 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
-import ru.kaushina.dictionaryBot.messages.MessageBuilder;
+import ru.kaushina.dictionaryBot.messages.MessageBuilderFacade;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.Word;
@@ -35,7 +35,7 @@ public class TextMessageHandler {
     private UserService userService;
 
     @Autowired
-    private MessageBuilder messageBuilder;
+    private MessageBuilderFacade messageBuilder;
 
     @Autowired
     private MessageHandler messageHandler;
