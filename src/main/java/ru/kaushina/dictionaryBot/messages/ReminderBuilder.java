@@ -1,8 +1,10 @@
 package ru.kaushina.dictionaryBot.messages;
 
+import lombok.NonNull;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -66,7 +68,7 @@ public class ReminderBuilder implements IMessageBuilder {
 
     public SendMessage reminderMenu(Update update, Reminder reminder) {
         SendMessage message = setNewMessageChatId(update);
-        message.setText(textReminderMenu(reminder));
+        message.setText(textReminderMenu(reminder, getChatId(update)));
         message.setReplyMarkup(markupReminderMenu(reminder));
         return message;
     }
@@ -80,15 +82,15 @@ public class ReminderBuilder implements IMessageBuilder {
 
     public EditMessageText editReminderMenu(Update update, Reminder reminder) {
         EditMessageText message = setEditMessageChatId(update);
-        message.setText(textReminderMenu(reminder));
+        message.setText(textReminderMenu(reminder, getChatId(update)));
         message.setReplyMarkup(markupReminderMenu(reminder));
         return message;
     }
 
-    private String textReminderMenu(Reminder reminder) {
+    private String textReminderMenu(Reminder reminder, Long chatId) {
         String text = "";
         if (reminder != null) {
-            String dayweeks = reminderService.getDays(reminder);
+            String dayweeks = reminderService.getDays(reminder, chatId);
             String time = reminderService.getTime(reminder);
             String enabled = reminderService.isEnabled(reminder);
             text += MessageTexts.getMessage("message.reminder", dayweeks, time, enabled);
@@ -121,5 +123,64 @@ public class ReminderBuilder implements IMessageBuilder {
 
         inlineKeyboardMarkup.setKeyboard(rowsInline);
         return inlineKeyboardMarkup;
+    }
+
+    public EditMessageText weekDaysAdder(Update update, Reminder reminder) {
+        EditMessageText editMessageText = setEditMessageChatId(update);
+        editMessageText.setText(textWeekDaysAdder(reminder, getChatId(update)));
+        editMessageText.setReplyMarkup(markupWeekDaysAdder(reminder, getChatId(update)));
+        return editMessageText;
+    }
+
+    //check in handler smth i dont re,ember
+    private String textWeekDaysAdder(Reminder reminder, Long chatId) {
+        return MessageTexts.getMessage("message.days_adder", reminderService.getDays(reminder, chatId));
+
+    }
+
+
+    private InlineKeyboardMarkup markupWeekDaysAdder(Reminder reminder, Long chatId) {
+        List<String> days = reminderService.getDaysList(reminder, chatId);
+        InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
+        List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
+        List<InlineKeyboardButton> row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.weekday_monday",
+                days.contains("Пн") ? "✅" : ""), "REMINDER_MONDAY"));
+        row.add(createButton(MessageTexts.getMessage("button.weekday_tuesday",
+                days.contains("Вт") ? "✅" : ""), "REMINDER_TUESDAY"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.weekday_wednesday",
+                days.contains("Ср") ? "✅" : ""), "REMINDER_WEDNESDAY"));
+        row.add(createButton(MessageTexts.getMessage("button.weekday_thursday",
+                days.contains("Чт") ? "✅" : ""), "REMINDER_THURSDAY"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.weekday_friday",
+                days.contains("Пт") ? "✅" : ""), "REMINDER_FRIDAY"));
+        row.add(createButton(MessageTexts.getMessage("button.weekday_saturday",
+                days.contains("Сб") ? "✅" : ""), "REMINDER_SATURDAY"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.weekday_sunday",
+                days.contains("Вс") ? "✅" : ""), "REMINDER_SUNDAY"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.weekday_done"), "REMINDER_DAYDONE"));
+        rowsInline.add(row);
+
+        inlineKeyboardMarkup.setKeyboard(rowsInline);
+        return inlineKeyboardMarkup;
+    }
+
+
+    public SendMessage askToEnterTime(Update update) {
+        SendMessage message = setNewMessageChatId(update);
+        message.setText(MessageTexts.getMessage("message.enter_time"));
+        return message;
     }
 }

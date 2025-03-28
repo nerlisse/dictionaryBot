@@ -11,6 +11,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.ReminderBuilder;
 import ru.kaushina.dictionaryBot.model.Reminder;
+import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
 
@@ -21,6 +22,7 @@ import java.util.Map;
 @Component
 public class ReminderHandler {
 
+    private final ReminderService reminderService;
     @Setter
     private MessageSender messageSender; // бот
 
@@ -30,14 +32,25 @@ public class ReminderHandler {
     private final ReminderBuilder reminderBuilder;
     private final UserService userService;
 
-    public ReminderHandler(MessageHandler messageHandler, ReminderBuilder reminderBuilder, UserService userService) {
+    public ReminderHandler(MessageHandler messageHandler, ReminderBuilder reminderBuilder,
+                           UserService userService, ReminderService reminderService) {
         this.userService = userService;
+        this.reminderService = reminderService;
         this.callbackHandlers = new HashMap<>();
         callbackHandlers.put("REMINDER", this::reminderMenuHandler);
         callbackHandlers.put("REMINDER_CREATE", this::reminderCreateHandler);
         callbackHandlers.put("REMINDER_EDIT", this::reminderEditHandler);
         callbackHandlers.put("REMINDER_ABLE", this::reminderToggleHandler);
         callbackHandlers.put("REMINDER_DELETE", this::reminderDeleteHandler);
+        callbackHandlers.put("REMINDER_MONDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_TUESDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_WEDNESDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_THURSDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_FRIDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_SATURDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_SUNDAY", this::editWeekDayHandler);
+        callbackHandlers.put("REMINDER_DAYDONE", this::weekDayDoneHandler);
+
         this.messageHandler = messageHandler;
         this.reminderBuilder = reminderBuilder;
     }
@@ -89,8 +102,26 @@ public class ReminderHandler {
     private void reminderEditHandler(Update update) {
     }
 
-    private void reminderCreateHandler(Update update) {
+    private void reminderCreateHandler(Update update) throws TelegramApiException {
+        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, null);
+        executeEditMessage(editMessageText);
     }
 
+
+    private void editWeekDayHandler(Update update) throws TelegramApiException {
+        String callback = update.getCallbackQuery().getData().split("_")[1];
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Reminder reminder = reminderService.changeWeekDays(callback, chatId);
+        EditMessageText editMessageText = reminderBuilder.weekDaysAdder(update, reminder);
+        executeEditMessage(editMessageText);
+    }
+
+
+    private void weekDayDoneHandler(Update update) throws TelegramApiException {
+        boolean done = reminderService.checkValidDays(update);
+        if (!done) return;
+        SendMessage sendMessage = reminderBuilder.askToEnterTime(update);
+        executeNewMessage(sendMessage);
+    }
 
 }

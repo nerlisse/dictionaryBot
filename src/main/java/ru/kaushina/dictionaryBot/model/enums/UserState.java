@@ -12,4 +12,5 @@ public enum UserState {
     REMEMBER_MODE,
     TEST_MODE,
     REMINDER,
+    REMINDER_EDIT,
 }

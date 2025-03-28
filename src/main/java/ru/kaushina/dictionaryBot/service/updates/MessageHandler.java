@@ -310,4 +310,9 @@ public class MessageHandler {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return reminderService.changeEnabling(chatId);
     }
+
+//    public void createReminderStart(Update update) {
+//        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+//        userService.setUserState(chatId, UserState.REMINDER_EDIT);
+//    }
 }
