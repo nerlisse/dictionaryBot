@@ -109,7 +109,7 @@ public class ReminderBuilder implements IMessageBuilder {
      */
     private String textReminderMenu(Reminder reminder, Long chatId, Update update) {
         String text = "";
-        if (!reminderService.checkValidTime(update.getMessage().getText())) {
+        if (update.hasMessage() && !reminderService.checkValidTime(update.getMessage().getText())) {
             text += MessageTexts.getMessage("message.failed_reminder");
         }
         if (reminder != null) {
@@ -185,6 +185,7 @@ public class ReminderBuilder implements IMessageBuilder {
      */
     private InlineKeyboardMarkup markupWeekDaysAdder(Reminder reminder, Long chatId) {
         List<String> days = reminderService.getDaysList(reminder, chatId);
+        if (days==null) days = new ArrayList<>();
         InlineKeyboardMarkup inlineKeyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInline = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();

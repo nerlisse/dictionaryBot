@@ -44,9 +44,10 @@ public class TextMessageHandler {
     private MessageHandler messageHandler;
 
     private final Map<UserState, CheckedConsumer<Update>> stateHandlers;
-    private ReminderBuilder reminderBuilder;
+    private final ReminderBuilder reminderBuilder;
 
-    public TextMessageHandler() {
+    public TextMessageHandler(ReminderBuilder reminderBuilder) {
+        this.reminderBuilder = reminderBuilder;
 
         this.stateHandlers = new HashMap<>();
 

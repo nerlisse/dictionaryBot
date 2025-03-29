@@ -21,8 +21,10 @@ public class ReminderService {
     /**Словарь для сохранения создаваемых запоминаний*/
     private final Map<Long, Integer> remindersPending;
     private final ReminderRepository reminderRepository;
+    private final UserService userService;
 
-    public ReminderService(ReminderRepository reminderRepository) {
+    public ReminderService(ReminderRepository reminderRepository, UserService userService) {
+        this.userService = userService;
         this.remindersPending = new HashMap<>();
         this.reminderRepository = reminderRepository;
     }
@@ -46,7 +48,7 @@ public class ReminderService {
         Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
         if (reminder == null)  {
             reminder = new Reminder();
-            reminder.setId(chatId);
+            reminder.setUser(userService.findByChatId(chatId));
         }
         Integer days = remindersPending.get(chatId);
         if (days == null) {
@@ -67,6 +69,9 @@ public class ReminderService {
      */
     public boolean checkValidTime(String time) {
         String regex = "^(?:[0-1][0-9]|[2][0-3]):(?:[0-5][0-9])$";
+        if (time.matches(regex)) {
+            System.out.println("MATCH" + time);
+        } else System.out.println("NOT MATCH " + time);
         return time.matches(regex);
     }
 
@@ -78,7 +83,7 @@ public class ReminderService {
      */
     public String getDays(Reminder reminder, Long chatId) {
         List<String> days = getDaysList(reminder, chatId);
-        if (!days.isEmpty()) return String.join(", ", days);
+        if (days != null && !days.isEmpty()) return String.join(", ", days);
         else return MessageTexts.getMessage("message.no_days");
     }
 
@@ -219,5 +224,17 @@ public class ReminderService {
      */
     public void cancelReminder(Long chatId) {
         remindersPending.remove(chatId);
+    }
+
+    /**
+     * Добавляет во временную структуру имеющееся напоминание.
+     * @param chatId идентификатор пользователя
+     */
+    public void addToPending(Long chatId) {
+        Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
+        if (reminder == null) {
+            remindersPending.put(chatId, 0);
+        }
+        else remindersPending.put(chatId, reminder.getDaysOfWeek());
     }
 }

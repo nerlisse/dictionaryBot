@@ -129,7 +129,8 @@ public class ReminderHandler {
      */
     private void reminderEditHandler(Update update) throws TelegramApiException {
         Reminder reminder = reminderService.getReminder(update.getCallbackQuery().getMessage().getChatId());
-        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, reminder);
+        messageHandler.editReminderStart(update);
+        EditMessageText editMessageText = reminderBuilder.weekDaysAdder(update, reminder);
         executeEditMessage(editMessageText);
     }
 
@@ -139,7 +140,7 @@ public class ReminderHandler {
      * @throws TelegramApiException при ошибке отправки
      */
     private void reminderCreateHandler(Update update) throws TelegramApiException {
-        EditMessageText editMessageText = reminderBuilder.editReminderMenu(update, null);
+        EditMessageText editMessageText = reminderBuilder.weekDaysAdder(update, null);
         executeEditMessage(editMessageText);
     }
 

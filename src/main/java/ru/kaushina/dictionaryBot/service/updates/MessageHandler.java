@@ -337,12 +337,22 @@ public class MessageHandler {
         Long chatId = update.getMessage().getChatId();
         String time = update.getMessage().getText();
         boolean valid = reminderService.checkValidTime(time);
-        Reminder reminder = null;
+        Reminder reminder = reminderService.getReminder(chatId);
+        System.out.println("reminder: " + reminder);
         if (valid) {
+            System.out.println("entered valid zone");
             reminder = reminderService.createReminder(chatId, time);
+            System.out.println("reminder: " + reminder);
         }
         userService.setUserState(chatId, UserState.REMINDER);
         return reminder;
     }
 
+    /**
+     * Обрабатывает начало изменения напоминания.
+     * @param update Объект Update с обновлением
+     */
+    public void editReminderStart(Update update) {
+        reminderService.addToPending(update.getCallbackQuery().getMessage().getChatId());
+    }
 }
