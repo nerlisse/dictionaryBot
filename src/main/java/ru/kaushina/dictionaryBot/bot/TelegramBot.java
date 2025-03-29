@@ -10,6 +10,7 @@ import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.config.BotConfig;
+import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.service.TelegramBotService;
 import ru.kaushina.dictionaryBot.service.updates.CallbackQueryHandler;
 import ru.kaushina.dictionaryBot.service.updates.ReminderHandler;
@@ -41,7 +42,8 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
      * @param callbackQueryHandler обработчик callback-запросов
      */
     public TelegramBot(BotConfig config, TelegramBotService botService, TextMessageHandler textMessageHandler,
-                       CallbackQueryHandler callbackQueryHandler, ReminderHandler reminderHandler) {
+                       CallbackQueryHandler callbackQueryHandler,
+                       ReminderHandler reminderHandler, ReminderService reminderService) {
         this.config = config;
         this.botService = botService;
 
@@ -49,6 +51,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         textMessageHandler.setMessageSender(this);
         callbackQueryHandler.setMessageSender(this);
         reminderHandler.setMessageSender(this);
+        reminderService.setMessageSender(this);
     }
 
     /**

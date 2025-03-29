@@ -170,5 +170,4 @@ public class ReminderHandler {
         userService.setUserState(chatId, UserState.REMINDER_EDIT);
         executeNewMessage(sendMessage);
     }
-
 }

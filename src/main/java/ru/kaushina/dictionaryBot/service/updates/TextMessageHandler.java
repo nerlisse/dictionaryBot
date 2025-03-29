@@ -20,6 +20,7 @@ import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.consumer.CheckedConsumer;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -66,7 +67,8 @@ public class TextMessageHandler {
      */
     private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
         Message sentMessage = messageSender.executeMessage(sendMessage);
-        userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
+        if (!sentMessage.getText().equals(MessageTexts.getMessage("message.get_reminder")))
+            userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
     }
 
     /**

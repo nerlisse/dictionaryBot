@@ -1,11 +1,20 @@
 package ru.kaushina.dictionaryBot.service;
 
+import lombok.Setter;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.model.Reminder;
 import ru.kaushina.dictionaryBot.repository.ReminderRepository;
+import ru.kaushina.dictionaryBot.service.updates.ReminderHandler;
 import ru.kaushina.dictionaryBot.util.MessageTexts;
 
+import java.time.DayOfWeek;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -17,6 +26,9 @@ import java.util.Map;
  */
 @Service
 public class ReminderService {
+
+    @Setter
+    private MessageSender messageSender;
 
     /**Словарь для сохранения создаваемых запоминаний*/
     private final Map<Long, Integer> remindersPending;
@@ -236,5 +248,47 @@ public class ReminderService {
             remindersPending.put(chatId, 0);
         }
         else remindersPending.put(chatId, reminder.getDaysOfWeek());
+    }
+
+    /**
+     * Проверяет каждую минуту, нужно ли отправлять кому-то напоминания, и отправляет, если да.
+     * @throws TelegramApiException при ошибке отправки
+     */
+    @Scheduled(cron = "0 * * * * *") // запуск каждую минуту
+    public void checkAndSendReminders() throws TelegramApiException {
+        LocalTime nowTime = LocalTime.now();
+        DayOfWeek today = LocalDate.now().getDayOfWeek();
+
+        List<Reminder> reminders = reminderRepository.findActiveReminders();
+        for (Reminder reminder : reminders) {
+            if (shouldSendReminder(reminder, today, nowTime)) {
+                sendReminder(reminder);
+            }
+        }
+    }
+
+    /**
+     * Проверяет, нужно ли присылать уведомление в эту минуту.
+     * @param reminder напоминание
+     * @param today день недели сегодняшний
+     * @param nowTime время сейчас
+     * @return true, если нужно отправить, иначе false
+     */
+    private boolean shouldSendReminder(Reminder reminder, DayOfWeek today, LocalTime nowTime) {
+        int dayMask = 1 << (today.getValue() - 1);
+        boolean isCorrectDay = (reminder.getDaysOfWeek() & dayMask) != 0;
+        boolean isCorrectTime = Math.abs(Duration.between(reminder.getTime(), nowTime).toMinutes()) < 1;
+        return isCorrectDay && isCorrectTime;
+    }
+
+    /**
+     * Строит и отправляет сообщение с напоминанием.
+     * @param reminder напоминание
+     */
+    private void sendReminder(Reminder reminder) throws TelegramApiException {
+        SendMessage message = new SendMessage();
+        message.setChatId(reminder.getUser().getChatId());
+        message.setText(MessageTexts.getMessage("message.get_reminder"));
+        messageSender.executeMessage(message);
     }
 }
