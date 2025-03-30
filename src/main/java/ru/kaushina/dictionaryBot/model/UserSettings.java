@@ -24,8 +24,8 @@ public class UserSettings {
     @Enumerated(EnumType.STRING)
     private ShowMode showMode;
 
-    @Column(columnDefinition = "varchar(10) default ': '")
+    @Column(nullable = false)
     private String wordSeparator;
-    @Column(columnDefinition = "varchar(10) default '\\n\\n'")
+    @Column(nullable = false)
     private String termValueSeparator;
 }

@@ -105,6 +105,8 @@ public class UserSettingsService {
         UserSettings userSettings = new UserSettings();
         userSettings.setUser(user);
         userSettings.setShowMode(ShowMode.SHOW_KEY);
+        userSettings.setWordSeparator("\n\n");
+        userSettings.setTermValueSeparator(":");
         userSettingsRepository.save(userSettings);
     }
 }
