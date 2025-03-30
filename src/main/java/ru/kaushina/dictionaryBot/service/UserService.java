@@ -25,9 +25,11 @@ import java.sql.Timestamp;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final UserSettingsService userSettingsService;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, UserSettingsService userSettingsService) {
         this.userRepository = userRepository;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -74,18 +76,18 @@ public class UserService {
 
         Chat chat = message.getChat();
         User user = new User();
-
         user.setChatId(chatId);
         user.setFirstName(chat.getFirstName());
         user.setLastName(chat.getLastName());
         user.setUsername(chat.getUserName());
-        user.setSetting(ShowMode.SHOW_KEY);
-
         user.setUserState(UserState.MAIN_MENU);
         user.setRegisteredAt(new Timestamp(System.currentTimeMillis()));
 
         log.info("registered user: {}, chatId: {}", user.getUsername(), chatId);
-        return userRepository.save(user);
+
+        userRepository.save(user);
+        userSettingsService.createSettings(user);
+        return user;
 
     }
 
@@ -132,31 +134,4 @@ public class UserService {
         return user.getCurrentFolderId();
     }
 
-    /**
-     * Изменяет настройку отображения для пользователя
-     * @param chatId уникальный идентификатор чата пользователя
-     * @param callback строка с названием настройки ("SHOW KEY" или "SHOW VALUE")
-     * @return ShowMode - новое значение настройки
-     */
-    public ShowMode changeSetting(Long chatId, String callback) {
-        User user = userRepository.findByChatId(chatId);
-        if (callback.equals("SHOW KEY")) {
-            user.setSetting(ShowMode.SHOW_KEY);
-        }
-        else if (callback.equals("SHOW VALUE")) {
-            user.setSetting(ShowMode.SHOW_VALUE);
-        }
-        userRepository.save(user);
-        return user.getSetting();
-    }
-
-    /**
-     * Получает текущую настройку отображения пользователя.
-     * @param chatId уникальный идентификатор чата пользователя
-     * @return ShowMode - текущая настройка отображения
-     */
-    public ShowMode getShowMode(Long chatId) {
-        User user = userRepository.findByChatId(chatId);
-        return user.getSetting();
-    }
 }

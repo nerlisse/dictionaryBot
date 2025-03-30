@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.*;
-import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.*;
 
@@ -28,13 +27,17 @@ public class MessageHandler {
     private final WordService wordService;
     private final TrainingSessionService trainingSessionService;
     private final ReminderService reminderService;
+    private final UserSettingsService userSettingsService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, ReminderService reminderService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService,
+                          TrainingSessionService trainingSessionService,
+                          ReminderService reminderService, UserSettingsService userSettingsService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
         this.trainingSessionService = trainingSessionService;
         this.reminderService = reminderService;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -291,9 +294,21 @@ public class MessageHandler {
      * @param update Объект Update с изменением настроек
      * @return Новый ShowMode после применения изменений
      */
-    public ShowMode settingsHandler(Update update) {
+    public UserSettings settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        return userService.changeSetting(chatId, update.getCallbackQuery().getData());
+        String callbackData = update.getCallbackQuery().getData();
+        if (callbackData.equals("SETTINGS")) {
+            return userSettingsService.getSettings(chatId);
+        }
+        if (callbackData.contains("SHOW")) {
+            return userSettingsService.changeShowMode(chatId, update.getCallbackQuery().getData());
+        }
+        if (callbackData.contains("TV")) {
+            userService.setUserState(chatId, UserState.EDIT_TV_SEP);
+            return null;
+        }
+        userService.setUserState(chatId, UserState.EDIT_WORD_SEP);
+        return null;
     }
 
     /**
@@ -355,5 +370,22 @@ public class MessageHandler {
      */
     public void editReminderStart(Update update) {
         reminderService.addToPending(update.getCallbackQuery().getMessage().getChatId());
+    }
+
+    /**
+     * Обрабатывает ввод разделителей в настройках.
+     * @param update Объект Update с обновлением
+     * @return UserSettings - обновленные настройки пользователя
+     */
+    public UserSettings editSeparatorHandler(Update update) {
+        String separator = update.getMessage().getText();
+        Long chatId = update.getMessage().getChatId();
+        UserState state = userService.findByChatId(chatId).getUserState();
+        if (state.equals(UserState.EDIT_TV_SEP)) {
+            userService.setUserState(chatId, UserState.SHOW_FOLDER);
+            return userSettingsService.setTermValueSeparator(chatId, separator);
+        }
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        return userSettingsService.setWordSeparator(chatId, separator);
     }
 }

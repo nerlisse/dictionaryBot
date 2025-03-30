@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.UserSettings;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -210,12 +211,26 @@ public class FolderBuilder implements IMessageBuilder {
      * @param update Объект Update с обновлением
      * @return EditMessageText - редактированное сообщение с настройками
      */
-    public EditMessageText settingsMessage(ShowMode setting, Update update) {
+    public EditMessageText settingsMessage(UserSettings setting, Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
-        String text = MessageTexts.getMessage("message.settings",
-                (setting.equals(ShowMode.SHOW_KEY) ? "термин" : "значение"));
-        editMessageText.setText(text);
+        editMessageText.setText(settingsText(setting));
+        editMessageText.setReplyMarkup(markupSettings());
+        return editMessageText;
+    }
 
+    /**
+     * Строит текст сообщения в меню настроек.
+     * @param setting текущие настройки пользователя
+     * @return String - текст сообщения
+     */
+    private String settingsText(UserSettings setting) {
+        return MessageTexts.getMessage("message.settings",
+                (setting.getShowMode().equals(ShowMode.SHOW_KEY) ? "термин" : "значение"),
+                setting.getTermValueSeparator().replace("\n", "\\n"),
+                setting.getWordSeparator().replace("\n", "\\n"));
+    }
+
+    private InlineKeyboardMarkup markupSettings() {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
@@ -225,12 +240,16 @@ public class FolderBuilder implements IMessageBuilder {
         rowsInLine.add(row);
 
         row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.term_value_sep"), "EDIT TV SEP"));
+        row.add(createButton(MessageTexts.getMessage("button.word_sep"), "EDIT WORD SEP"));
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
         row.add(createButton(MessageTexts.getMessage("button.go_home"), "SHOW FOLDER"));
         rowsInLine.add(row);
 
         markup.setKeyboard(rowsInLine);
-        editMessageText.setReplyMarkup(markup);
-        return editMessageText;
+        return markup;
     }
 
     public SendMessage getEasterEggMessage(Update update) {
@@ -245,4 +264,30 @@ public class FolderBuilder implements IMessageBuilder {
         return sendMessage;
     }
 
+    /**
+     * Строит сообщение для приглашения к вводу разделителей.
+     * @param update Объект Update с обновлением
+     * @return EditMessageText - редактированное сообщение
+     */
+    public EditMessageText enterSeparator(Update update) {
+        EditMessageText editMessageText = setEditMessageChatId(update);
+        if (update.getCallbackQuery().getData().contains("WORD")) {
+            editMessageText.setText(MessageTexts.getMessage("message.enter_word_sep"));
+        }
+        else editMessageText.setText(MessageTexts.getMessage("message.enter_tv_sep"));
+        return editMessageText;
+    }
+
+    /**
+     * Составление нового сообщения с настройками.
+     * @param setting Объект ShowMode с текущей настройкой
+     * @param update Объект Update с обновлением
+     * @return EditMessageText - редактированное сообщение с настройками
+     */
+    public SendMessage newSettingsMenu(UserSettings setting, Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(settingsText(setting));
+        sendMessage.setReplyMarkup(markupSettings());
+        return sendMessage;
+    }
 }

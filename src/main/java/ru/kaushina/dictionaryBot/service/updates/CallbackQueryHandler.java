@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.MessageBuilderFacade;
+import ru.kaushina.dictionaryBot.model.UserSettings;
 import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.util.MessageTexts;
 import ru.kaushina.dictionaryBot.model.User;
@@ -65,6 +66,8 @@ public class CallbackQueryHandler {
         callbackHandlers.put("SETTINGS", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
+        callbackHandlers.put("EDIT TV SEP", this::settingsCallbackHandler);
+        callbackHandlers.put("EDIT WORD SEP", this::settingsCallbackHandler);
         callbackHandlers.put("REMINDER", this::reminderCallbackHandler);
     }
 
@@ -328,10 +331,14 @@ public class CallbackQueryHandler {
      * @throws TelegramApiException при ошибке отправки
      */
     private void settingsCallbackHandler(Update update) throws TelegramApiException {
-        ShowMode setting = messageHandler.settingsHandler(update);
+        UserSettings setting = messageHandler.settingsHandler(update);
         if (update.getCallbackQuery().getData().equals("SHOW FOLDER")) {
             SendMessage message = messageBuilder.folderShowMessage(update);
             executeNewMessage(message);
+        }
+        else if (update.getCallbackQuery().getData().contains("SEP")) {
+            EditMessageText text = messageBuilder.enterSeparator(update);
+            executeEditMessage(text);
         }
         else {
             EditMessageText text = messageBuilder.settingsMessage(setting, update);

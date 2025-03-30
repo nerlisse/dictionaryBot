@@ -13,4 +13,6 @@ public enum UserState {
     TEST_MODE,
     REMINDER,
     REMINDER_EDIT,
+    EDIT_TV_SEP,
+    EDIT_WORD_SEP,
 }

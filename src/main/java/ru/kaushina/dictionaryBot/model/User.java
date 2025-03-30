@@ -30,8 +30,5 @@ public class User {
 
     private Long currentFolderId;
 
-    @Enumerated(EnumType.STRING)
-    private ShowMode setting;
-
     private Timestamp registeredAt;
 }

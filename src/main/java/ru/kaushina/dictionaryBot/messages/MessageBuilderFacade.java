@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.UserSettings;
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
@@ -48,7 +49,7 @@ public class MessageBuilderFacade {
         return folderBuilder.folderShowMessage(update);
     }
 
-    public EditMessageText settingsMessage(ShowMode setting, Update update) {
+    public EditMessageText settingsMessage(UserSettings setting, Update update) {
         return folderBuilder.settingsMessage(setting, update);
     }
 
@@ -117,4 +118,11 @@ public class MessageBuilderFacade {
         return gameBuilder.showTestModeMessage(update, session);
     }
 
+    public EditMessageText enterSeparator(Update update) {
+        return folderBuilder.enterSeparator(update);
+    }
+
+    public SendMessage newSettingsMenu(UserSettings setting, Update update) {
+        return folderBuilder.newSettingsMenu(setting, update);
+    }
 }

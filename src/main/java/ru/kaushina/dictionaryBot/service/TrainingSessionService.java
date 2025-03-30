@@ -20,7 +20,7 @@ public class TrainingSessionService {
     private final Map<Long, TrainingSession> sessions;
     private final FolderService folderService;
     private final WordService wordService;
-    private final UserService userService;
+    private final UserSettingsService userSettingsService;
 
     /**
      * Класс сессии, содержащий всю информацию о сессии.
@@ -51,11 +51,12 @@ public class TrainingSessionService {
         }
     }
 
-    public TrainingSessionService(FolderService folderService, WordService wordService, UserService userService) {
+    public TrainingSessionService(FolderService folderService, WordService wordService,
+                                  UserSettingsService userSettingsService) {
         sessions = new HashMap<>();
         this.folderService = folderService;
         this.wordService = wordService;
-        this.userService = userService;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -76,7 +77,7 @@ public class TrainingSessionService {
                 .folderSize(sessionWords.size())
                 .words(sessionWords)
                 .previousWord(null)
-                .showMode(userService.getShowMode(chatId))
+                .showMode(userSettingsService.getShowMode(chatId))
                 .wordIndex(0)
                 .successfulCount(0)
                 .showAnswer(false)
