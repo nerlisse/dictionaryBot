@@ -34,7 +34,7 @@ public class FolderService {
     /**
      * Находит все папки пользователя по chatId.
      * @param chatId уникальный идентификатор чата пользователя
-     * @return List<Folder> - список папок пользователя
+     * @return {@code List<Folder>} - список папок пользователя
      */
     public List<Folder> findByUser_ChatId(Long chatId) {
         List<Folder> folders = folderRepository.findByUser_ChatId(chatId);

@@ -21,7 +21,7 @@ public interface ReminderRepository extends JpaRepository<Reminder, Long> {
 
     /**
      * Находит все активные напоминания с помощью запроса.
-     * @return List\<Reminder\> - список активных напоминаний
+     * @return {@code List<Reminder>} - список активных напоминаний
      */
     @Query("SELECT r FROM reminders r WHERE r.enabled = true")
     List<Reminder> findActiveReminders();

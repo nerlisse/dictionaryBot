@@ -100,7 +100,7 @@ public class ReminderService {
      * Получает выбранные дни недели в виде списка строк.
      * @param reminder напоминание, для которого ищутся дни недели
      * @param chatId идентификатор пользователя
-     * @return List\<String\> - список выбранных дней недели
+     * @return {@code List<String>} - список выбранных дней недели
      */
     public List<String> getDaysList(Reminder reminder, Long chatId) {
         if (!remindersPending.containsKey(chatId)) {

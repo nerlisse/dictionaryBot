@@ -29,7 +29,7 @@ public class WordParsingService {
      * @param text текст для парсинга
      * @param termSeparator разделитель между парами "термин-значение"
      * @param wordSeparator разделитель между термином и его значением
-     * @return List\<Word\> список созданных объектов
+     * @return {@code List<Word>} список созданных объектов
      * @throws RuntimeException если:
      *         - текст не содержит ни одной пары (пустой после разделения)
      *         - найдена некорректная пара (не соответствует формату)
