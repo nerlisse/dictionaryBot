@@ -140,55 +140,6 @@ public class MessageHandler {
     }
 
     /**
-     * Начинает процесс добавления слова.
-     * @param update Объект Update с callback-ом на добавление слова
-     */
-    public void askToAddWordHandler(Update update) {
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        userService.setUserState(chatId, UserState.ADD_KEY);
-    }
-
-    /**
-     * Обрабатывает добавление термина
-     * @param update Объект Update с ключевым словом
-     * @return true если слово успешно добавлено, false в противном случае
-     */
-    public boolean addKeywordHandler(Update update) {
-        Long chatId = update.getMessage().getChatId();
-        String key = update.getMessage().getText();
-        Long folderId = userService.getCurrentFolderId(chatId);
-        boolean added = wordService.addKeyword(folderId, key);
-        if (added) {
-            userService.setUserState(chatId, UserState.ADD_VALUE);
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * Обрабатывает значение при добавлении слова и завершает процесс создания.
-     * @param update Объект Update со значением слова
-     * @return Созданный объект Word или null, если создание не удалось
-     */
-    public Word addValueHandler(Update update) {
-/*        Long chatId = update.getMessage().getChatId();
-        String value = update.getMessage().getText();
-        Long folderId = userService.getCurrentFolderId(chatId);
-        Word word = wordService.addWord(folderId, value);
-
-        if (word != null) {
-            log.info("word successfully created for user {}", chatId);
-        }
-        else {
-            log.warn("word was not created for user {}", chatId);
-        }
-        userService.setUserState(chatId, UserState.SHOW_FOLDER);
-        wordService.cancelAddingWord(chatId);
-        return word;*/
-        return null;
-    }
-
-    /**
      * Отображает все слова в текущей папке пользователю.
      * @param update Объект Update, инициирующий отображение слов
      */

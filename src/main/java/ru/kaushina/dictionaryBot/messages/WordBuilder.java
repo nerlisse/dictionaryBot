@@ -79,28 +79,6 @@ public class WordBuilder implements IMessageBuilder {
     }
 
     /**
-     * Составление сообщения о неудачном добавлении слова.
-     * @param update Объект Update с обновлением
-     * @return SendMessage - новое сообщение, уведомляющее о неудаче термина
-     */
-    public SendMessage failedToAddWordMessage(Update update) {
-        SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_word_again"));
-        return message;
-    }
-
-    /**
-     * Составления сообщения о приглашении к добавлению значения для термина.
-     * @param update Объект Update с обновлением
-     * @return SendMessage - новое сообщение о вводе значения термина
-     */
-    public SendMessage addValueMessage(Update update) {
-        SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_value"));
-        return message;
-    }
-
-    /**
      * Составление сообщения со всеми словами в выбранной папке.
      * @param update Объект Update с обновлением
      * @return SendMessage - новое сообщение со словами
