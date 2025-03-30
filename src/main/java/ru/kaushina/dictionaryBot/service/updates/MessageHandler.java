@@ -384,7 +384,7 @@ public class MessageHandler {
      * @param update Объект Update с обновлением
      */
     public void failedImportHandler(Update update) {
-        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        Long chatId = update.getMessage().getChatId();
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
     }
 }

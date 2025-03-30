@@ -69,6 +69,7 @@ public class FolderBuilder implements IMessageBuilder {
         InlineKeyboardButton inlineKeyboardButton = new InlineKeyboardButton();
         inlineKeyboardButton.setText(text);
         inlineKeyboardButton.setCallbackData(callbackData);
+        System.out.println("BUTTON: TEXT = " + text + " CALLBACKDATA = " + callbackData);
         return inlineKeyboardButton;
     }
 

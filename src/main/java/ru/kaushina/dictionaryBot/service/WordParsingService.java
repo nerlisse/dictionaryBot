@@ -37,19 +37,22 @@ public class WordParsingService {
      */
     @Transactional
     public List<Word> parseWordsFromText(Long chatId, String text, String termSeparator, String wordSeparator) {
-        String[] pairs = text.split(termSeparator);
+        String[] pairs = text.split(wordSeparator);
         if (pairs.length == 0) {
             throw new RuntimeException();
         }
         List<Word> words = new ArrayList<>();
         for (String pair : pairs) {
-            String[] word = pair.split(wordSeparator);
+            String[] word = pair.split(termSeparator);
             if (word.length == 0) continue;
             if (word.length != 2) {
                 throw new RuntimeException();
             }
+            System.out.println("HERE AAAAAAAAAAAAAA");
             Word newWord = wordService.createWord(word[0], word[1], userService.getCurrentFolderId(chatId));
+            System.out.println("CREATED ");
             if (newWord == null) {
+                System.out.println("PAIR: " + pair);
                 throw new RuntimeException();
             }
         }

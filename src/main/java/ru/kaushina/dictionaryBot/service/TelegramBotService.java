@@ -49,7 +49,7 @@ public class TelegramBotService {
                 textMessageHandler.handleTextMessage(update);
             } else if (update.hasCallbackQuery()) { // if some button pressed
                 callbackQueryHandler.handleCallbackQuery(update);
-            } else if (update.hasMessage() && update.getMessage().hasDocument() {
+            } else if (update.hasMessage() && update.getMessage().hasDocument()) {
                 fileHandler.handleFile(update, botConfig.getToken());
             }
         } catch (TelegramApiException e) {

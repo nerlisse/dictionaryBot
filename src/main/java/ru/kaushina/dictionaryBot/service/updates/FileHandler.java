@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Document;
 import org.telegram.telegrambots.meta.api.objects.File;
+import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
@@ -19,6 +20,7 @@ import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.UserService;
 import ru.kaushina.dictionaryBot.service.UserSettingsService;
 import ru.kaushina.dictionaryBot.service.WordParsingService;
+import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -46,6 +48,17 @@ public class FileHandler {
         this.userSettingsService = userSettingsService;
         this.wordParsingService = wordParsingService;
         this.messageBuilderFacade = messageBuilderFacade;
+    }
+
+    /**
+     * Отправляет новое сообщение и регистрирует идентификатор последнего сообщения
+     * @param sendMessage Объект SendMessage для отправки
+     * @throws TelegramApiException при ошибке отправки
+     */
+    private void executeNewMessage(SendMessage sendMessage) throws TelegramApiException {
+        Message sentMessage = messageSender.executeMessage(sendMessage);
+        if (!sentMessage.getText().equals(MessageTexts.getMessage("message.get_reminder")))
+            userService.setLastMessageId(sentMessage.getChatId(), sentMessage.getMessageId());
     }
 
     /**
@@ -111,11 +124,11 @@ public class FileHandler {
         } else {
             sendMessage = messageBuilderFacade.failedFileImport(update);
         }
-        messageSender.executeMessage(sendMessage);
+        executeNewMessage(sendMessage);
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
 
         sendMessage = messageBuilderFacade.folderShowMessage(update);
-        messageSender.executeMessage(sendMessage);
+        executeNewMessage(sendMessage);
     }
 
     /**

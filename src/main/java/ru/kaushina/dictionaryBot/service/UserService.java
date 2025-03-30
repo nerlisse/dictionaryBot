@@ -120,6 +120,7 @@ public class UserService {
         if (user.getCurrentFolderId() == null && callback != null) {
             user.setCurrentFolderId(Long.valueOf(callback.substring(12)));
         }
+        if (callback == null) user.setCurrentFolderId(null);
         log.info("Showing folder {} to user {}", user.getCurrentFolderId(), chatId);
         userRepository.save(user);
     }
