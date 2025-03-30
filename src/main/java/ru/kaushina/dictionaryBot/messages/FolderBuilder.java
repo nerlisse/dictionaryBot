@@ -9,6 +9,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMa
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
 import ru.kaushina.dictionaryBot.model.UserSettings;
+import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -282,12 +283,36 @@ public class FolderBuilder implements IMessageBuilder {
      * Составление нового сообщения с настройками.
      * @param setting Объект ShowMode с текущей настройкой
      * @param update Объект Update с обновлением
-     * @return EditMessageText - редактированное сообщение с настройками
+     * @return SendMessage - новое сообщение с настройками
      */
     public SendMessage newSettingsMenu(UserSettings setting, Update update) {
         SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText(settingsText(setting));
         sendMessage.setReplyMarkup(markupSettings());
+        return sendMessage;
+    }
+
+    /**
+     * Строит сообщение об ошибке импорта из файла из-за некорректного формата.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение
+     */
+    public SendMessage failedFileImport(Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage("message.failed_file_import"));
+        return sendMessage;
+    }
+
+    /**
+     * Строит сообщение об успешном импорте слов или сообщение о некорректности данных.
+     * @param update Объект Update с обновлением
+     * @param words список созданных слов ({@code null} если была ошибка данных)
+     * @return SendMessage - новое сообщение
+     */
+    public SendMessage wordImportMessage(Update update, List<Word> words) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage(words != null ?
+                "message.word_import_success" : "message.word_import_fail"));
         return sendMessage;
     }
 }
