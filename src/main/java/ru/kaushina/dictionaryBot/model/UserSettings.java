@@ -3,7 +3,6 @@ package ru.kaushina.dictionaryBot.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 
 /**
@@ -16,7 +15,7 @@ public class UserSettings {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long chatId;
+    private Long id;
 
     @OneToOne
     @JoinColumn(name = "user_chat_id", referencedColumnName = "chatId")
@@ -25,8 +24,8 @@ public class UserSettings {
     @Enumerated(EnumType.STRING)
     private ShowMode showMode;
 
-    @ColumnDefault(": ")
+    @Column(columnDefinition = "varchar(10) default ': '")
     private String wordSeparator;
-    @ColumnDefault("\n\n")
+    @Column(columnDefinition = "varchar(10) default '\\n\\n'")
     private String termValueSeparator;
 }

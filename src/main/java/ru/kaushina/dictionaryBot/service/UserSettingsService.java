@@ -1,6 +1,7 @@
 package ru.kaushina.dictionaryBot.service;
 
 import org.springframework.stereotype.Service;
+import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.UserSettings;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.repository.UserSettingsRepository;
@@ -28,14 +29,30 @@ public class UserSettingsService {
 
     /**
      * Устанавливает режим показывания термина/значения для пользователя.
-     * @param chatId идентификатор пользователя
-     * @param showMode новый режим
-     * @return UserSettings - текущие настройки пользователя
+     *
      */
-    public UserSettings setShowMode(Long chatId, ShowMode showMode) {
+    public void setShowMode(Long chatId, ShowMode showMode) {
         UserSettings userSettings = userSettingsRepository.findByUser_ChatId(chatId);
         userSettings.setShowMode(showMode);
-        return userSettingsRepository.save(userSettings);
+        userSettingsRepository.save(userSettings);
+    }
+
+    /**
+     * Устанавливает режим показывания термина/значения для пользователя на противоположный.
+     * @param chatId идентификатор пользователя
+     * @param callback callback с новым режимом
+     * @return ShowMode - текущая настройка пользователя
+     */
+    public ShowMode changeShowMode(Long chatId, String callback) {
+        UserSettings userSettings = userSettingsRepository.findByUser_ChatId(chatId);
+        if (callback.equals("SHOW KEY")) {
+            userSettings.setShowMode(ShowMode.SHOW_KEY);
+        }
+        else if (callback.equals("SHOW VALUE")) {
+            userSettings.setShowMode(ShowMode.SHOW_VALUE);
+        }
+        userSettingsRepository.save(userSettings);
+        return userSettings.getShowMode();
     }
 
     /**
@@ -78,5 +95,16 @@ public class UserSettingsService {
         UserSettings userSettings = userSettingsRepository.findByUser_ChatId(chatId);
         userSettings.setTermValueSeparator(termValueSeparator);
         return userSettingsRepository.save(userSettings);
+    }
+
+    /**
+     * Создает настройки для пользователя (разделители установлены по умолчанию).
+     * @param user - новый пользователь
+     */
+    public void createSettings(User user) {
+        UserSettings userSettings = new UserSettings();
+        userSettings.setUser(user);
+        userSettings.setShowMode(ShowMode.SHOW_KEY);
+        userSettingsRepository.save(userSettings);
     }
 }

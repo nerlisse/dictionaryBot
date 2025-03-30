@@ -28,13 +28,17 @@ public class MessageHandler {
     private final WordService wordService;
     private final TrainingSessionService trainingSessionService;
     private final ReminderService reminderService;
+    private final UserSettingsService userSettingsService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, ReminderService reminderService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService,
+                          TrainingSessionService trainingSessionService,
+                          ReminderService reminderService, UserSettingsService userSettingsService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
         this.trainingSessionService = trainingSessionService;
         this.reminderService = reminderService;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -293,7 +297,7 @@ public class MessageHandler {
      */
     public ShowMode settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        return userService.changeSetting(chatId, update.getCallbackQuery().getData());
+        return userSettingsService.changeShowMode(chatId, update.getCallbackQuery().getData());
     }
 
     /**
