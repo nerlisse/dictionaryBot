@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -49,6 +48,11 @@ public class FileHandler {
         this.messageBuilderFacade = messageBuilderFacade;
     }
 
+    /**
+     * Обрабатывает файл, отправленный пользователем.
+     * @param update Объект Update с обновлением
+     * @param token токен бота
+     */
     public void handleFile(Update update, String token) {
         Long chatId = update.getMessage().getChatId();
         UserState state = userService.getUserState(chatId);
@@ -75,6 +79,25 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Обрабатывает загруженный файл с терминами, парсит содержимое в зависимости от формата файла
+     * и сохраняет полученные слова. Отправляет пользователю результат операции.
+     * <p>Поддерживаемые форматы:
+     * <ul>
+     *   <li>TXT - текстовый файл с разделителями</li>
+     *   <li>DOCX - документ Microsoft Word</li>
+     * </ul>
+     * @param chatId идентификатор чата пользователя
+     * @param inputStream поток данных загруженного файла
+     * @param fileName имя файла (определяет формат обработки)
+     * @param update объект Update с обновлениями
+     * @param termSeparator разделитель между термином и значением
+     * @param wordSeparator разделитель между словами
+     * @throws IOException если произошла ошибка чтения файла
+     * @throws TelegramApiException если не удалось отправить сообщение пользователю
+     *
+     * @see WordParsingService
+     */
     private void processFile(Long chatId, InputStream inputStream, String fileName, Update update,
                              String termSeparator, String wordSeparator) throws IOException, TelegramApiException {
         List<Word> words;
@@ -95,6 +118,15 @@ public class FileHandler {
         messageSender.executeMessage(sendMessage);
     }
 
+    /**
+     * Парсит все слова из txt-файла. Обрабатывает некорректность данных.
+     * @param chatId идентификатор пользователя
+     * @param inputStream поток данных файла
+     * @param termSeparator разделитель между термином и значением
+     * @param wordSeparator разделитель между словами
+     * @return List\<Word\> список созданных слов, {@code null} при ошибке
+     * @throws IOException при ошибке в чтении файла
+     */
     private List<Word> parseTXT(Long chatId, InputStream inputStream, String termSeparator,
                                 String wordSeparator) throws IOException {
         String text = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
@@ -105,6 +137,15 @@ public class FileHandler {
         }
     }
 
+    /**
+     * Обрабатывает все слова из docx-файла, обрабатывает некорректность данных.
+     * @param chatId идентификатор пользователя
+     * @param inputStream поток данных файла
+     * @param termSeparator разделитель между термином и значением
+     * @param wordSeparator разделитель между словами
+     * @return List\<Word\> список созданных слов, {@code null} при ошибке
+     * @throws IOException при ошибке в чтении файла
+     */
     private List<Word> parseDocs(Long chatId, InputStream inputStream,
                                  String termSeparator, String wordSeparator) throws IOException {
         XWPFDocument doc = new XWPFDocument(inputStream);
