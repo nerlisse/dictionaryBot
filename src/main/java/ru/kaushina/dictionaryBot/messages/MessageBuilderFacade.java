@@ -127,4 +127,12 @@ public class MessageBuilderFacade {
     public SendMessage wordImportMessage(Update update, List<Word> words) {
         return folderBuilder.wordImportMessage(update, words);
     }
+
+    public SendMessage startImportWordsMessage(Update update, UserSettings setting) {
+        return folderBuilder.startImportWordsMessage(update, setting);
+    }
+
+    public SendMessage noFileMessage(Update update) {
+        return wordBuilder.noFileMessage(update);
+    }
 }

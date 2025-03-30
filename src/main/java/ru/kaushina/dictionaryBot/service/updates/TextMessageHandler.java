@@ -56,6 +56,7 @@ public class TextMessageHandler {
         stateHandlers.put(UserState.REMINDER_EDIT, this::enterTimeHandler);
         stateHandlers.put(UserState.EDIT_TV_SEP, this::editSeparatorHandler);
         stateHandlers.put(UserState.EDIT_WORD_SEP, this::editSeparatorHandler);
+        stateHandlers.put(UserState.SEND_DOC, this::failedImportHandler);
     }
 
     /**
@@ -219,9 +220,26 @@ public class TextMessageHandler {
         executeNewMessage(message);
     }
 
+    /**
+     * Обработчик смены разделителей.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки ответа
+     */
     private void editSeparatorHandler(Update update) throws TelegramApiException {
         UserSettings setting = messageHandler.editSeparatorHandler(update);
         SendMessage message = messageBuilder.newSettingsMenu(setting, update);
+        executeNewMessage(message);
+    }
+
+    /**
+     * Обработчик неотправленного файла (если был отправлен текст).
+     * @param update Объект Update с обновлением
+     */
+    private void failedImportHandler(Update update) throws TelegramApiException {
+        messageHandler.failedImportHandler(update);
+        SendMessage message = messageBuilder.noFileMessage(update);
+        executeNewMessage(message);
+        message = messageBuilder.folderShowMessage(update);
         executeNewMessage(message);
     }
 

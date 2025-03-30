@@ -178,6 +178,10 @@ public class FolderBuilder implements IMessageBuilder {
         rowsInline.add(row);
 
         row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.import_words"), "IMPORT WORDS"));
+        rowsInline.add(row);
+
+        row = new ArrayList<>();
         row.add(createButton(MessageTexts.getMessage("button.remember_mode"), "REMEMBER MODE"));
         row.add(createButton(MessageTexts.getMessage("button.test_mode"), "TEST MODE"));
         rowsInline.add(row);
@@ -313,6 +317,19 @@ public class FolderBuilder implements IMessageBuilder {
         SendMessage sendMessage = setNewMessageChatId(update);
         sendMessage.setText(MessageTexts.getMessage(words != null ?
                 "message.word_import_success" : "message.word_import_fail"));
+        return sendMessage;
+    }
+
+    /**
+     * Строит сообщение для приглашения к отправлению файла со словами.
+     * @param update Объект Update с обновлением
+     * @param setting Текущие настройки пользователя
+     * @return SendMessage - новое сообщение
+     */
+    public SendMessage startImportWordsMessage(Update update, UserSettings setting) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(MessageTexts.getMessage("message.start_import",
+                setting.getTermValueSeparator(), setting.getWordSeparator()));
         return sendMessage;
     }
 }

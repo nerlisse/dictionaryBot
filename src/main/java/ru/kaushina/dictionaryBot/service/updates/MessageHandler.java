@@ -339,11 +339,20 @@ public class MessageHandler {
         return userSettingsService.setWordSeparator(chatId, separator);
     }
 
+    /**
+     * начинает процесс добавления слова.
+     * @param update Объект Update с обновлением
+     */
     public void startAddWordHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         userService.setUserState(chatId, UserState.ADD_KEY);
     }
 
+    /**
+     * Добавляет слово в папку.
+     * @param update Объект Update с обновлением
+     * @return Word - добавленное слово, иначе {@code null}
+     */
     public Word addWordHandler(Update update) {
         Long chatId = update.getMessage().getChatId();
         String value = update.getMessage().getText();
@@ -357,5 +366,25 @@ public class MessageHandler {
         }
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         return word;
+    }
+
+    /**
+     * Обрабатывает начало импорта слов из файла и посылает сообщение с приглашением.
+     * @param update Объект Update с обновлением
+     * @return UserSettings - текущие настройки пользователя
+     */
+    public UserSettings startImportWordsHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.SEND_DOC);
+        return userSettingsService.getSettings(chatId);
+    }
+
+    /**
+     * Обрабатывает некорректный ответ на ввод файла (например, текстовое сообщение).
+     * @param update Объект Update с обновлением
+     */
+    public void failedImportHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
     }
 }

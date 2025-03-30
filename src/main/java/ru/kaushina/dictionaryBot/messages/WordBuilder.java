@@ -153,4 +153,14 @@ public class WordBuilder implements IMessageBuilder {
         return message;
     }
 
+    /**
+     * Строит сообщение для случая, когда вместо файла было отправлено текстовое сообщение.
+     * @param update Объект Update с обновлением
+     * @return SendMessage - новое сообщение
+     */
+    public SendMessage noFileMessage(Update update) {
+        SendMessage message = setNewMessageChatId(update);
+        message.setText(MessageTexts.getMessage("message.no_file"));
+        return message;
+    }
 }
