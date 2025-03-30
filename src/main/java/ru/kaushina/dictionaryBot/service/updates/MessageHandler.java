@@ -6,10 +6,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.*;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
-import ru.kaushina.dictionaryBot.service.FolderService;
-import ru.kaushina.dictionaryBot.service.TrainingSessionService;
-import ru.kaushina.dictionaryBot.service.UserService;
-import ru.kaushina.dictionaryBot.service.WordService;
+import ru.kaushina.dictionaryBot.service.*;
 
 import java.util.Optional;
 
@@ -30,12 +27,14 @@ public class MessageHandler {
     private final FolderService folderService;
     private final WordService wordService;
     private final TrainingSessionService trainingSessionService;
+    private final ReminderService reminderService;
 
-    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService) {
+    public MessageHandler(UserService userService, FolderService folderService, WordService wordService, TrainingSessionService trainingSessionService, ReminderService reminderService) {
         this.userService = userService;
         this.folderService = folderService;
         this.wordService = wordService;
         this.trainingSessionService = trainingSessionService;
+        this.reminderService = reminderService;
     }
 
     /**
@@ -50,6 +49,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         wordService.cancelAddingWord(chatId);
+        reminderService.cancelReminder(chatId);
         trainingSessionService.endTrainingSession(chatId);
     }
 
@@ -68,6 +68,7 @@ public class MessageHandler {
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
         wordService.cancelAddingWord(chatId);
+        reminderService.cancelReminder(chatId);
     }
 
     /**
@@ -293,5 +294,66 @@ public class MessageHandler {
     public ShowMode settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return userService.changeSetting(chatId, update.getCallbackQuery().getData());
+    }
+
+    /**
+     * Обрабатывает нажатие на кнопку "Напоминания" (устанавливает состояние в REMINDER).
+     * @param update Объект Update с обновлением
+     * @return Reminder - напоминание пользователя, если уже создано, {@code null} иначе
+     */
+    public Reminder getReminderMenu(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.REMINDER);
+        return reminderService.getReminder(chatId);
+    }
+
+    /**
+     * Удаляет напоминание пользователя.
+     * @param update Объект Update с обновлением
+     * @return {@code null} в любом случае, необходимо для корректного отображения меню
+     */
+    public Reminder deleteReminder(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        reminderService.deleteReminder(chatId);
+        return null;
+    }
+
+    /**
+     * Переключатель включения/выключения напоминания.
+     * @param update Объект Update с обновлением
+     * @return Reminder - обновленное напоминание
+     */
+    public Reminder toggleReminderHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        return reminderService.changeEnabling(chatId);
+    }
+
+    /**
+     * Обрабатывает ввод времени, проверяет его на валидность, в случае отказа не создает ничего.
+     * @param update Объект Update с обновлением
+     * @return Reminder - успешно созданное напоминание, иначе {@code null}
+     */
+    public Reminder addTimeHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        String time = update.getMessage().getText();
+        boolean valid = reminderService.checkValidTime(time);
+        Reminder reminder = reminderService.getReminder(chatId);
+        System.out.println("reminder: " + reminder);
+        if (valid) {
+            System.out.println("entered valid zone");
+            reminder = reminderService.createReminder(chatId, time);
+            System.out.println("reminder: " + reminder);
+        }
+        reminderService.cancelReminder(chatId);
+        userService.setUserState(chatId, UserState.REMINDER);
+        return reminder;
+    }
+
+    /**
+     * Обрабатывает начало изменения напоминания.
+     * @param update Объект Update с обновлением
+     */
+    public void editReminderStart(Update update) {
+        reminderService.addToPending(update.getCallbackQuery().getMessage().getChatId());
     }
 }

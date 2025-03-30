@@ -12,6 +12,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.MessageBuilderFacade;
+import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.util.MessageTexts;
 import ru.kaushina.dictionaryBot.model.User;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
@@ -30,6 +31,9 @@ import java.util.Map;
 public class CallbackQueryHandler {
     @Autowired
     private MessageBuilderFacade messageBuilder;
+
+    @Autowired
+    private ReminderHandler reminderHandler;
 
     @Autowired
     private MessageHandler messageHandler;
@@ -61,7 +65,9 @@ public class CallbackQueryHandler {
         callbackHandlers.put("SETTINGS", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
+        callbackHandlers.put("REMINDER", this::reminderCallbackHandler);
     }
+
 
     /**
      * Отправка редактированного сообщения.
@@ -318,8 +324,8 @@ public class CallbackQueryHandler {
 
     /**
      * Обработчик ответов в меню настроек (нажата кнопка "настройки"/"поменять значение настроек").
-     * @param update
-     * @throws TelegramApiException
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
      */
     private void settingsCallbackHandler(Update update) throws TelegramApiException {
         ShowMode setting = messageHandler.settingsHandler(update);
@@ -331,6 +337,15 @@ public class CallbackQueryHandler {
             EditMessageText text = messageBuilder.settingsMessage(setting, update);
             executeEditMessage(text);
         }
+    }
+
+    /**
+     * Обработчик событий, связанных с напоминаниями, передает обработку в соответствующий класс.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
+    private void reminderCallbackHandler(Update update) throws TelegramApiException {
+        reminderHandler.handleUpdate(update);
     }
 
 }

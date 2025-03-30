@@ -11,4 +11,6 @@ public enum UserState {
     DELETE_WORD,
     REMEMBER_MODE,
     TEST_MODE,
+    REMINDER,
+    REMINDER_EDIT,
 }

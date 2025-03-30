@@ -100,6 +100,7 @@ public class FolderBuilder implements IMessageBuilder {
         row = new ArrayList<>();
         // adding create folder button
         row.add(createButton(MessageTexts.getMessage("button.create_folder"), "CREATE NEW FOLDER"));
+        row.add(createButton(MessageTexts.getMessage("button.reminder"), "REMINDER"));
         rowsInline.add(row);
 
         //set markup for message
