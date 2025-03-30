@@ -152,13 +152,19 @@ public class TextMessageHandler {
      * @throws TelegramApiException при ошибке отправки ответа
      */
     private void addKeyHandler(Update update) throws TelegramApiException {
-        boolean created = messageHandler.addKeywordHandler(update);
+/*        boolean created = messageHandler.addKeywordHandler(update);
         SendMessage sendMessage;
         if (created) {
             sendMessage = messageBuilder.addValueMessage(update);
         }
         else
             sendMessage = messageBuilder.failedToAddWordMessage(update);
+        executeNewMessage(sendMessage);*/
+        Word word = messageHandler.addWordHandler(update);
+        SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
+        executeNewMessage(sendMessage);
+
+        sendMessage = messageBuilder.folderShowMessage(update);
         executeNewMessage(sendMessage);
     }
 
@@ -168,12 +174,7 @@ public class TextMessageHandler {
      * @throws TelegramApiException при ошибке отправки ответа
      */
     private void addValueHandler(Update update) throws TelegramApiException {
-        Word word = messageHandler.addValueHandler(update);
-        SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
-        executeNewMessage(sendMessage);
 
-        sendMessage = messageBuilder.folderShowMessage(update);
-        executeNewMessage(sendMessage);
     }
 
     /**

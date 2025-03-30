@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.UserSettingsService;
 import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.List;
@@ -19,10 +20,12 @@ public class WordBuilder implements IMessageBuilder {
 
     private final FolderService folderService;
     private final UserService userService;
+    private final UserSettingsService userSettingsService;
 
-    public WordBuilder(FolderService folderService, UserService userService) {
+    public WordBuilder(FolderService folderService, UserService userService, UserSettingsService userSettingsService) {
         this.folderService = folderService;
         this.userService = userService;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -70,7 +73,8 @@ public class WordBuilder implements IMessageBuilder {
      */
     public SendMessage addWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_word"));
+        String separator = userSettingsService.getTermValueSeparator(getChatId(update));
+        message.setText(MessageTexts.getMessage("message.add_word", separator));
         return message;
     }
 

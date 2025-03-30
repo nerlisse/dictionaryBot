@@ -51,7 +51,6 @@ public class MessageHandler {
         Long chatId = update.getMessage().getChatId();
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
-        wordService.cancelAddingWord(chatId);
         reminderService.cancelReminder(chatId);
         trainingSessionService.endTrainingSession(chatId);
     }
@@ -70,7 +69,6 @@ public class MessageHandler {
         }
         userService.setUserState(chatId, UserState.MAIN_MENU);
         userService.setCurrentFolderId(chatId, null);
-        wordService.cancelAddingWord(chatId);
         reminderService.cancelReminder(chatId);
     }
 
@@ -173,7 +171,7 @@ public class MessageHandler {
      * @return Созданный объект Word или null, если создание не удалось
      */
     public Word addValueHandler(Update update) {
-        Long chatId = update.getMessage().getChatId();
+/*        Long chatId = update.getMessage().getChatId();
         String value = update.getMessage().getText();
         Long folderId = userService.getCurrentFolderId(chatId);
         Word word = wordService.addWord(folderId, value);
@@ -186,7 +184,8 @@ public class MessageHandler {
         }
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         wordService.cancelAddingWord(chatId);
-        return word;
+        return word;*/
+        return null;
     }
 
     /**
@@ -387,5 +386,25 @@ public class MessageHandler {
         }
         userService.setUserState(chatId, UserState.SHOW_FOLDER);
         return userSettingsService.setWordSeparator(chatId, separator);
+    }
+
+    public void startAddWordHandler(Update update) {
+        Long chatId = update.getCallbackQuery().getMessage().getChatId();
+        userService.setUserState(chatId, UserState.ADD_KEY);
+    }
+
+    public Word addWordHandler(Update update) {
+        Long chatId = update.getMessage().getChatId();
+        String value = update.getMessage().getText();
+        Long folderId = userService.getCurrentFolderId(chatId);
+        Word word = wordService.addWord(chatId, folderId, value);
+        if (word != null) {
+            log.info("word successfully created for user {}", chatId);
+        }
+        else {
+            log.warn("word was not created for user {}", chatId);
+        }
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        return word;
     }
 }

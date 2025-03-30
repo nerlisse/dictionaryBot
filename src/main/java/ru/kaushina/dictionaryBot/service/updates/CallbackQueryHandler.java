@@ -178,12 +178,12 @@ public class CallbackQueryHandler {
     }
 
     /**
-     * Обработчик начала добавления слова (нажата кнопка "добавить слово").
+     * Обработчик добавления слова (нажата кнопка "добавить слово").
      * @param update Объект Update c обновлением
      * @throws TelegramApiException при ошибке отправки
      */
     private void addWordCallbackHandler(Update update) throws TelegramApiException {
-        messageHandler.askToAddWordHandler(update);
+        messageHandler.startAddWordHandler(update);
         SendMessage sendMessage = messageBuilder.addWordMessage(update);
         executeNewMessage(sendMessage);
     }
