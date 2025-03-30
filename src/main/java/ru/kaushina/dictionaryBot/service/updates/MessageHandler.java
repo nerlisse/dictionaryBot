@@ -344,6 +344,7 @@ public class MessageHandler {
             reminder = reminderService.createReminder(chatId, time);
             System.out.println("reminder: " + reminder);
         }
+        reminderService.cancelReminder(chatId);
         userService.setUserState(chatId, UserState.REMINDER);
         return reminder;
     }

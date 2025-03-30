@@ -81,9 +81,6 @@ public class ReminderService {
      */
     public boolean checkValidTime(String time) {
         String regex = "^(?:[0-1][0-9]|[2][0-3]):(?:[0-5][0-9])$";
-        if (time.matches(regex)) {
-            System.out.println("MATCH" + time);
-        } else System.out.println("NOT MATCH " + time);
         return time.matches(regex);
     }
 
@@ -106,12 +103,11 @@ public class ReminderService {
      * @return List\<String\> - список выбранных дней недели
      */
     public List<String> getDaysList(Reminder reminder, Long chatId) {
-        int reminderDays;
-        if (reminder != null)
-            reminderDays = reminder.getDaysOfWeek();
-        else if (remindersPending.containsKey(chatId)) {
-            reminderDays = remindersPending.get(chatId);
-        } else return null;
+        if (!remindersPending.containsKey(chatId)) {
+            if (reminder != null) remindersPending.put(chatId, reminder.getDaysOfWeek());
+            else remindersPending.put(chatId, 0);
+        }
+        int reminderDays = remindersPending.get(chatId);
         List<String> days = new ArrayList<>();
         if ((reminderDays & 1) != 0) days.add("Пн");
         if ((reminderDays & (1 << 1)) != 0) days.add("Вт");
@@ -168,17 +164,10 @@ public class ReminderService {
      * @param chatId идентификатор пользователя
      */
     public void changeWeekDays(String callback, Long chatId) {
-        Reminder reminder = reminderRepository.findReminderByUser_ChatId(chatId);
-        int days;
-        if (reminder != null) {
-            remindersPending.put(chatId, reminder.getDaysOfWeek());
-            days = remindersPending.get(chatId);
-        } else if (remindersPending.containsKey(chatId)) {
-            days = remindersPending.get(chatId);
-        } else {
+        if (!remindersPending.containsKey(chatId)) {
             remindersPending.put(chatId, 0);
-            days = 0;
         }
+        int days = remindersPending.get(chatId);
         switch (callback) {
             case "MONDAY":
                 if ((days & 1) == 0) days |= 1;
