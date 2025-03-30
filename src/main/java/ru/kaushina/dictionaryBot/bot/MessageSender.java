@@ -1,8 +1,10 @@
 package ru.kaushina.dictionaryBot.bot;
 
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
@@ -38,4 +40,12 @@ public interface MessageSender {
      * @throws TelegramApiException если произошла ошибка при ответе
      */
     void executeCallbackAnswer(AnswerCallbackQuery callbackQuery) throws TelegramApiException;
+
+    /**
+     * Запрашивает информацию о файле по его {@code fileId} через Telegram API.
+     * @param getFile объект GetFile, содержащий {@code fileId} запрашиваемого файла
+     * @return File, содержащий информацию о файле, включая его путь
+     * @throws TelegramApiException если произошла ошибка при запросе к API Telegram
+     */
+    File executeGetFile(GetFile getFile) throws TelegramApiException;
 }

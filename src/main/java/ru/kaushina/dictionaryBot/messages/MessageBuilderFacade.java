@@ -12,6 +12,8 @@ import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 
+import java.util.List;
+
 /**
  * Класс, получающий запросы на постройку сообщения и делегирующий их соответствующим классам.
  * Методы описаны в соответствующих классах.
@@ -116,5 +118,21 @@ public class MessageBuilderFacade {
 
     public SendMessage newSettingsMenu(UserSettings setting, Update update) {
         return folderBuilder.newSettingsMenu(setting, update);
+    }
+
+    public SendMessage failedFileImport(Update update) {
+        return folderBuilder.failedFileImport(update);
+    }
+
+    public SendMessage wordImportMessage(Update update, List<Word> words) {
+        return folderBuilder.wordImportMessage(update, words);
+    }
+
+    public SendMessage startImportWordsMessage(Update update, UserSettings setting) {
+        return folderBuilder.startImportWordsMessage(update, setting);
+    }
+
+    public SendMessage noFileMessage(Update update) {
+        return wordBuilder.noFileMessage(update);
     }
 }

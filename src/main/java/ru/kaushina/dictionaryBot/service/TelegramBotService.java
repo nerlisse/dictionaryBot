@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.config.BotConfig;
 import ru.kaushina.dictionaryBot.service.updates.CallbackQueryHandler;
+import ru.kaushina.dictionaryBot.service.updates.FileHandler;
 import ru.kaushina.dictionaryBot.service.updates.TextMessageHandler;
 
 /**
@@ -21,13 +22,17 @@ import ru.kaushina.dictionaryBot.service.updates.TextMessageHandler;
 @Service
 public class TelegramBotService {
 
+    private final BotConfig botConfig;
     private final TextMessageHandler textMessageHandler;
-
     private final CallbackQueryHandler callbackQueryHandler;
+    private final FileHandler fileHandler;
 
-    public TelegramBotService(TextMessageHandler textMessageHandler, CallbackQueryHandler callbackQueryHandler) {
+    public TelegramBotService(BotConfig botConfig, TextMessageHandler textMessageHandler,
+                              CallbackQueryHandler callbackQueryHandler, FileHandler fileHandler) {
+        this.botConfig = botConfig;
         this.textMessageHandler = textMessageHandler;
         this.callbackQueryHandler = callbackQueryHandler;
+        this.fileHandler = fileHandler;
     }
 
     /**
@@ -44,6 +49,8 @@ public class TelegramBotService {
                 textMessageHandler.handleTextMessage(update);
             } else if (update.hasCallbackQuery()) { // if some button pressed
                 callbackQueryHandler.handleCallbackQuery(update);
+            } else if (update.hasMessage() && update.getMessage().hasDocument()) {
+                fileHandler.handleFile(update, botConfig.getToken());
             }
         } catch (TelegramApiException e) {
             log.error("Error handling update: {}", e.getMessage());

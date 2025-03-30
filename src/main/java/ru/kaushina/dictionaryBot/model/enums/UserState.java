@@ -7,6 +7,7 @@ public enum UserState {
     SHOW_FOLDER,
     CREATE_FOLDER,
     ADD_KEY,
+    SEND_DOC,
     DELETE_WORD,
     REMEMBER_MODE,
     TEST_MODE,

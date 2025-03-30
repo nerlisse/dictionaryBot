@@ -34,7 +34,7 @@ public class WordService {
      * @return Word, если слово было создано, {@code null} при неудаче
      */
     public Word createWord(String key, String value, Long folderId) {
-        if (key.isEmpty() || value.isEmpty() || folderId == null) {
+        if (key.isEmpty() || value.isEmpty() || key.length() > 1000 || value.length() > 1000 ||folderId == null) {
             return null;
         }
         if (wordRepository.findByWordKeyAndFolderId(key, folderId) != null) {

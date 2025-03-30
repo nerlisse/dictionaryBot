@@ -69,8 +69,8 @@ public class CallbackQueryHandler {
         callbackHandlers.put("EDIT TV SEP", this::settingsCallbackHandler);
         callbackHandlers.put("EDIT WORD SEP", this::settingsCallbackHandler);
         callbackHandlers.put("REMINDER", this::reminderCallbackHandler);
+        callbackHandlers.put("IMPORT WORDS", this::importWordsHandler);
     }
-
 
     /**
      * Отправка редактированного сообщения.
@@ -353,6 +353,17 @@ public class CallbackQueryHandler {
      */
     private void reminderCallbackHandler(Update update) throws TelegramApiException {
         reminderHandler.handleUpdate(update);
+    }
+
+    /**
+     * Обрабатывает запрос на импорт слов из файла.
+     * @param update Объект Update с обновлением
+     * @throws TelegramApiException при ошибке отправки
+     */
+    private void importWordsHandler(Update update) throws TelegramApiException {
+        UserSettings setting = messageHandler.startImportWordsHandler(update);
+        SendMessage message = messageBuilder.startImportWordsMessage(update, setting);
+        executeNewMessage(message);
     }
 
 }
