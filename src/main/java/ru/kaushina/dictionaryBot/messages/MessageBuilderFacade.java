@@ -118,4 +118,11 @@ public class MessageBuilderFacade {
         return gameBuilder.showTestModeMessage(update, session);
     }
 
+    public EditMessageText enterSeparator(Update update) {
+        return folderBuilder.enterSeparator(update);
+    }
+
+    public SendMessage newSettingsMenu(UserSettings setting, Update update) {
+        return folderBuilder.newSettingsMenu(setting, update);
+    }
 }

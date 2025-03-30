@@ -213,12 +213,24 @@ public class FolderBuilder implements IMessageBuilder {
      */
     public EditMessageText settingsMessage(UserSettings setting, Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
-        String text = MessageTexts.getMessage("message.settings",
+        editMessageText.setText(settingsText(setting));
+        editMessageText.setReplyMarkup(markupSettings());
+        return editMessageText;
+    }
+
+    /**
+     * Строит текст сообщения в меню настроек.
+     * @param setting текущие настройки пользователя
+     * @return String - текст сообщения
+     */
+    private String settingsText(UserSettings setting) {
+        return MessageTexts.getMessage("message.settings",
                 (setting.getShowMode().equals(ShowMode.SHOW_KEY) ? "термин" : "значение"),
                 setting.getTermValueSeparator().replace("\n", "\\n"),
                 setting.getWordSeparator().replace("\n", "\\n"));
-        editMessageText.setText(text);
+    }
 
+    private InlineKeyboardMarkup markupSettings() {
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rowsInLine = new ArrayList<>();
         List<InlineKeyboardButton> row = new ArrayList<>();
@@ -237,8 +249,7 @@ public class FolderBuilder implements IMessageBuilder {
         rowsInLine.add(row);
 
         markup.setKeyboard(rowsInLine);
-        editMessageText.setReplyMarkup(markup);
-        return editMessageText;
+        return markup;
     }
 
     public SendMessage getEasterEggMessage(Update update) {
@@ -253,4 +264,30 @@ public class FolderBuilder implements IMessageBuilder {
         return sendMessage;
     }
 
+    /**
+     * Строит сообщение для приглашения к вводу разделителей.
+     * @param update Объект Update с обновлением
+     * @return EditMessageText - редактированное сообщение
+     */
+    public EditMessageText enterSeparator(Update update) {
+        EditMessageText editMessageText = setEditMessageChatId(update);
+        if (update.getCallbackQuery().getData().contains("WORD")) {
+            editMessageText.setText(MessageTexts.getMessage("message.enter_word_sep"));
+        }
+        else editMessageText.setText(MessageTexts.getMessage("message.enter_tv_sep"));
+        return editMessageText;
+    }
+
+    /**
+     * Составление нового сообщения с настройками.
+     * @param setting Объект ShowMode с текущей настройкой
+     * @param update Объект Update с обновлением
+     * @return EditMessageText - редактированное сообщение с настройками
+     */
+    public SendMessage newSettingsMenu(UserSettings setting, Update update) {
+        SendMessage sendMessage = setNewMessageChatId(update);
+        sendMessage.setText(settingsText(setting));
+        sendMessage.setReplyMarkup(markupSettings());
+        return sendMessage;
+    }
 }

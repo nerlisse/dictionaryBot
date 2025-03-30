@@ -66,6 +66,8 @@ public class CallbackQueryHandler {
         callbackHandlers.put("SETTINGS", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW KEY", this::settingsCallbackHandler);
         callbackHandlers.put("SHOW VALUE", this::settingsCallbackHandler);
+        callbackHandlers.put("EDIT TV SEP", this::settingsCallbackHandler);
+        callbackHandlers.put("EDIT WORD SEP", this::settingsCallbackHandler);
         callbackHandlers.put("REMINDER", this::reminderCallbackHandler);
     }
 
@@ -333,6 +335,10 @@ public class CallbackQueryHandler {
         if (update.getCallbackQuery().getData().equals("SHOW FOLDER")) {
             SendMessage message = messageBuilder.folderShowMessage(update);
             executeNewMessage(message);
+        }
+        else if (update.getCallbackQuery().getData().contains("SEP")) {
+            EditMessageText text = messageBuilder.enterSeparator(update);
+            executeEditMessage(text);
         }
         else {
             EditMessageText text = messageBuilder.settingsMessage(setting, update);

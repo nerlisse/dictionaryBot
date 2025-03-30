@@ -296,7 +296,19 @@ public class MessageHandler {
      */
     public UserSettings settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
-        return userSettingsService.changeShowMode(chatId, update.getCallbackQuery().getData());
+        String callbackData = update.getCallbackQuery().getData();
+        if (callbackData.equals("SETTINGS")) {
+            return userSettingsService.getSettings(chatId);
+        }
+        if (callbackData.contains("SHOW")) {
+            return userSettingsService.changeShowMode(chatId, update.getCallbackQuery().getData());
+        }
+        if (callbackData.contains("TV")) {
+            userService.setUserState(chatId, UserState.EDIT_TV_SEP);
+            return null;
+        }
+        userService.setUserState(chatId, UserState.EDIT_WORD_SEP);
+        return null;
     }
 
     /**
@@ -358,5 +370,22 @@ public class MessageHandler {
      */
     public void editReminderStart(Update update) {
         reminderService.addToPending(update.getCallbackQuery().getMessage().getChatId());
+    }
+
+    /**
+     * Обрабатывает ввод разделителей в настройках.
+     * @param update Объект Update с обновлением
+     * @return UserSettings - обновленные настройки пользователя
+     */
+    public UserSettings editSeparatorHandler(Update update) {
+        String separator = update.getMessage().getText();
+        Long chatId = update.getMessage().getChatId();
+        UserState state = userService.findByChatId(chatId).getUserState();
+        if (state.equals(UserState.EDIT_TV_SEP)) {
+            userService.setUserState(chatId, UserState.SHOW_FOLDER);
+            return userSettingsService.setTermValueSeparator(chatId, separator);
+        }
+        userService.setUserState(chatId, UserState.SHOW_FOLDER);
+        return userSettingsService.setWordSeparator(chatId, separator);
     }
 }

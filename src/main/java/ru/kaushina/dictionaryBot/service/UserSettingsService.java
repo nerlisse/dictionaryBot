@@ -108,4 +108,13 @@ public class UserSettingsService {
         userSettings.setTermValueSeparator(":");
         userSettingsRepository.save(userSettings);
     }
+
+    /**
+     * Находит настройки пользователя по его идентификатору.
+     * @param chatId идентификатор пользователя
+     * @return UserSettings - текущие настройки пользователя
+     */
+    public UserSettings getSettings(Long chatId) {
+        return userSettingsRepository.findByUser_ChatId(chatId);
+    }
 }

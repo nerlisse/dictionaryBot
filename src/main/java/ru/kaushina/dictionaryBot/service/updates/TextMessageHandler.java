@@ -12,10 +12,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import ru.kaushina.dictionaryBot.bot.MessageSender;
 import ru.kaushina.dictionaryBot.messages.MessageBuilderFacade;
 import ru.kaushina.dictionaryBot.messages.ReminderBuilder;
-import ru.kaushina.dictionaryBot.model.Folder;
-import ru.kaushina.dictionaryBot.model.Reminder;
-import ru.kaushina.dictionaryBot.model.User;
-import ru.kaushina.dictionaryBot.model.Word;
+import ru.kaushina.dictionaryBot.model.*;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.TrainingSessionService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -58,6 +55,8 @@ public class TextMessageHandler {
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
         stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
         stateHandlers.put(UserState.REMINDER_EDIT, this::enterTimeHandler);
+        stateHandlers.put(UserState.EDIT_TV_SEP, this::editSeparatorHandler);
+        stateHandlers.put(UserState.EDIT_WORD_SEP, this::editSeparatorHandler);
     }
 
     /**
@@ -234,6 +233,12 @@ public class TextMessageHandler {
     private void enterTimeHandler(Update update) throws TelegramApiException {
         Reminder reminder = messageHandler.addTimeHandler(update);
         SendMessage message = reminderBuilder.reminderMenu(update, reminder);
+        executeNewMessage(message);
+    }
+
+    private void editSeparatorHandler(Update update) throws TelegramApiException {
+        UserSettings setting = messageHandler.editSeparatorHandler(update);
+        SendMessage message = messageBuilder.newSettingsMenu(setting, update);
         executeNewMessage(message);
     }
 
