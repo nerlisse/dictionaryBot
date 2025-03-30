@@ -8,6 +8,7 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import ru.kaushina.dictionaryBot.model.Folder;
+import ru.kaushina.dictionaryBot.model.UserSettings;
 import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
@@ -210,10 +211,12 @@ public class FolderBuilder implements IMessageBuilder {
      * @param update Объект Update с обновлением
      * @return EditMessageText - редактированное сообщение с настройками
      */
-    public EditMessageText settingsMessage(ShowMode setting, Update update) {
+    public EditMessageText settingsMessage(UserSettings setting, Update update) {
         EditMessageText editMessageText = setEditMessageChatId(update);
         String text = MessageTexts.getMessage("message.settings",
-                (setting.equals(ShowMode.SHOW_KEY) ? "термин" : "значение"));
+                (setting.getShowMode().equals(ShowMode.SHOW_KEY) ? "термин" : "значение"),
+                setting.getTermValueSeparator().replace("\n", "\\n"),
+                setting.getWordSeparator().replace("\n", "\\n"));
         editMessageText.setText(text);
 
         InlineKeyboardMarkup markup = new InlineKeyboardMarkup();
@@ -222,6 +225,11 @@ public class FolderBuilder implements IMessageBuilder {
 
         row.add(createButton(MessageTexts.getMessage("button.change_term"), "SHOW KEY"));
         row.add(createButton(MessageTexts.getMessage("button.change_meaning"), "SHOW VALUE"));
+        rowsInLine.add(row);
+
+        row = new ArrayList<>();
+        row.add(createButton(MessageTexts.getMessage("button.term_value_sep"), "EDIT TV SEP"));
+        row.add(createButton(MessageTexts.getMessage("button.word_sep"), "EDIT WORD SEP"));
         rowsInLine.add(row);
 
         row = new ArrayList<>();

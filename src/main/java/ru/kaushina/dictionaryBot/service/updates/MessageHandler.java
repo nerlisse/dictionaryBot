@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import ru.kaushina.dictionaryBot.model.*;
-import ru.kaushina.dictionaryBot.model.enums.ShowMode;
 import ru.kaushina.dictionaryBot.model.enums.UserState;
 import ru.kaushina.dictionaryBot.service.*;
 
@@ -295,7 +294,7 @@ public class MessageHandler {
      * @param update Объект Update с изменением настроек
      * @return Новый ShowMode после применения изменений
      */
-    public ShowMode settingsHandler(Update update) {
+    public UserSettings settingsHandler(Update update) {
         Long chatId = update.getCallbackQuery().getMessage().getChatId();
         return userSettingsService.changeShowMode(chatId, update.getCallbackQuery().getData());
     }

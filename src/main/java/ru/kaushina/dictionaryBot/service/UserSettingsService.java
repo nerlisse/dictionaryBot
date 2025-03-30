@@ -41,9 +41,9 @@ public class UserSettingsService {
      * Устанавливает режим показывания термина/значения для пользователя на противоположный.
      * @param chatId идентификатор пользователя
      * @param callback callback с новым режимом
-     * @return ShowMode - текущая настройка пользователя
+     * @return UserSettings - текущие настройки пользователя
      */
-    public ShowMode changeShowMode(Long chatId, String callback) {
+    public UserSettings changeShowMode(Long chatId, String callback) {
         UserSettings userSettings = userSettingsRepository.findByUser_ChatId(chatId);
         if (callback.equals("SHOW KEY")) {
             userSettings.setShowMode(ShowMode.SHOW_KEY);
@@ -51,8 +51,7 @@ public class UserSettingsService {
         else if (callback.equals("SHOW VALUE")) {
             userSettings.setShowMode(ShowMode.SHOW_VALUE);
         }
-        userSettingsRepository.save(userSettings);
-        return userSettings.getShowMode();
+        return userSettingsRepository.save(userSettings);
     }
 
     /**
