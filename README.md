@@ -65,12 +65,12 @@ spring.datasource.password=pass
 - **Spring Boot**
 - **Telegram Bot API**
 - **MySQL**
-- **Apache POI** (для обработки DOCX-файлов)
 
 ---
 
 ## 👥 Контакты
 📌 Разработчик: UltraMegaRazrabotchik
+
 📌 Telegram: [@makeDictionaryBot](https://t.me/MakeDictionaryBot)
 
 ---
