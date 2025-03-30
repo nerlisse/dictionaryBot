@@ -7,6 +7,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import ru.kaushina.dictionaryBot.model.Word;
 import ru.kaushina.dictionaryBot.service.FolderService;
 import ru.kaushina.dictionaryBot.service.UserService;
+import ru.kaushina.dictionaryBot.service.UserSettingsService;
 import ru.kaushina.dictionaryBot.util.MessageTexts;
 
 import java.util.List;
@@ -19,10 +20,12 @@ public class WordBuilder implements IMessageBuilder {
 
     private final FolderService folderService;
     private final UserService userService;
+    private final UserSettingsService userSettingsService;
 
-    public WordBuilder(FolderService folderService, UserService userService) {
+    public WordBuilder(FolderService folderService, UserService userService, UserSettingsService userSettingsService) {
         this.folderService = folderService;
         this.userService = userService;
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -70,29 +73,8 @@ public class WordBuilder implements IMessageBuilder {
      */
     public SendMessage addWordMessage(Update update) {
         SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_word"));
-        return message;
-    }
-
-    /**
-     * Составление сообщения о неудачном добавлении слова.
-     * @param update Объект Update с обновлением
-     * @return SendMessage - новое сообщение, уведомляющее о неудаче термина
-     */
-    public SendMessage failedToAddWordMessage(Update update) {
-        SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_word_again"));
-        return message;
-    }
-
-    /**
-     * Составления сообщения о приглашении к добавлению значения для термина.
-     * @param update Объект Update с обновлением
-     * @return SendMessage - новое сообщение о вводе значения термина
-     */
-    public SendMessage addValueMessage(Update update) {
-        SendMessage message = setNewMessageChatId(update);
-        message.setText(MessageTexts.getMessage("message.add_value"));
+        String separator = userSettingsService.getTermValueSeparator(getChatId(update));
+        message.setText(MessageTexts.getMessage("message.add_word", separator));
         return message;
     }
 

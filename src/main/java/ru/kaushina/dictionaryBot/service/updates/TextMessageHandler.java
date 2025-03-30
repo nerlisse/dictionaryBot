@@ -51,7 +51,6 @@ public class TextMessageHandler {
 
         stateHandlers.put(UserState.CREATE_FOLDER, this::createFolderHandler);
         stateHandlers.put(UserState.ADD_KEY, this::addKeyHandler);
-        stateHandlers.put(UserState.ADD_VALUE, this::addValueHandler);
         stateHandlers.put(UserState.DELETE_WORD, this::deleteWordHandler);
         stateHandlers.put(UserState.TEST_MODE, this::answerTestModeHandler);
         stateHandlers.put(UserState.REMINDER_EDIT, this::enterTimeHandler);
@@ -152,23 +151,7 @@ public class TextMessageHandler {
      * @throws TelegramApiException при ошибке отправки ответа
      */
     private void addKeyHandler(Update update) throws TelegramApiException {
-        boolean created = messageHandler.addKeywordHandler(update);
-        SendMessage sendMessage;
-        if (created) {
-            sendMessage = messageBuilder.addValueMessage(update);
-        }
-        else
-            sendMessage = messageBuilder.failedToAddWordMessage(update);
-        executeNewMessage(sendMessage);
-    }
-
-    /**
-     * Обработчик добавления значения и создания слова.
-     * @param update Объект Update с обновлением
-     * @throws TelegramApiException при ошибке отправки ответа
-     */
-    private void addValueHandler(Update update) throws TelegramApiException {
-        Word word = messageHandler.addValueHandler(update);
+        Word word = messageHandler.addWordHandler(update);
         SendMessage sendMessage = messageBuilder.WordCreatedMessage(update, word);
         executeNewMessage(sendMessage);
 

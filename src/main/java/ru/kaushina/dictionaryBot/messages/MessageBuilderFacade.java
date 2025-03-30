@@ -65,14 +65,6 @@ public class MessageBuilderFacade {
         return wordBuilder.addWordMessage(update);
     }
 
-    public SendMessage failedToAddWordMessage(Update update) {
-        return wordBuilder.failedToAddWordMessage(update);
-    }
-
-    public SendMessage addValueMessage(Update update) {
-        return wordBuilder.addValueMessage(update);
-    }
-
     public SendMessage showWordsMessage(Update update) {
         return wordBuilder.showWordsMessage(update);
     }

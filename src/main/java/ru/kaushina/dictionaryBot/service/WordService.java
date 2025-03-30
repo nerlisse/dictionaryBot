@@ -17,11 +17,13 @@ public class WordService {
     private final FolderService folderService;
     private final WordRepository wordRepository;
     private final Map<Long, String> addedWords;
+    private final UserSettingsService userSettingsService;
 
-    public WordService(FolderService folderService, WordRepository wordRepository) {
+    public WordService(FolderService folderService, WordRepository wordRepository, UserSettingsService userSettingsService) {
         this.folderService = folderService;
         this.wordRepository = wordRepository;
         addedWords = new HashMap<>();
+        this.userSettingsService = userSettingsService;
     }
 
     /**
@@ -40,8 +42,8 @@ public class WordService {
         }
 
         Word newWord = new Word();
-        newWord.setWordKey(key);
-        newWord.setWordValue(value);
+        newWord.setWordKey(key.trim());
+        newWord.setWordValue(value.trim());
         newWord.setFolder(folderService.findById(folderId).orElse(null));
 
         return wordRepository.save(newWord);
@@ -92,22 +94,13 @@ public class WordService {
      * @param value введенное значение термина
      * @return Word, если слово было найдено, {@code null} иначе
      */
-    public Word addWord(Long folderId, String value) {
-        if (addedWords.containsKey(folderId) && value.length() <= 1000) {
-            Word word = createWord(addedWords.get(folderId), value, folderId);
-            addedWords.remove(folderId);
-            return word;
+    public Word addWord(Long chatId, Long folderId, String value) {
+        String separator = userSettingsService.getTermValueSeparator(chatId);
+        String[] wordParts = value.split(separator);
+        if (wordParts.length != 2) {
+            return null;
         }
-        addedWords.remove(folderId);
-        return null;
-    }
-
-    /**
-     * Отменяет добавление слова.
-     * @param chatId идентификатор пользователя, который отменил ввод
-     */
-    public void cancelAddingWord(Long chatId) {
-        addedWords.remove(chatId);
+        return createWord(wordParts[0], wordParts[1], folderId);
     }
 
 }
