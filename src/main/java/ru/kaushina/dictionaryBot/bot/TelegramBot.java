@@ -4,8 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
+import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText;
+import org.telegram.telegrambots.meta.api.objects.File;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
@@ -13,6 +15,7 @@ import ru.kaushina.dictionaryBot.config.BotConfig;
 import ru.kaushina.dictionaryBot.service.ReminderService;
 import ru.kaushina.dictionaryBot.service.TelegramBotService;
 import ru.kaushina.dictionaryBot.service.updates.CallbackQueryHandler;
+import ru.kaushina.dictionaryBot.service.updates.FileHandler;
 import ru.kaushina.dictionaryBot.service.updates.ReminderHandler;
 import ru.kaushina.dictionaryBot.service.updates.TextMessageHandler;
 
@@ -43,7 +46,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
      */
     public TelegramBot(BotConfig config, TelegramBotService botService, TextMessageHandler textMessageHandler,
                        CallbackQueryHandler callbackQueryHandler,
-                       ReminderHandler reminderHandler, ReminderService reminderService) {
+                       ReminderHandler reminderHandler, ReminderService reminderService, FileHandler fileHandler) {
         this.config = config;
         this.botService = botService;
 
@@ -52,6 +55,7 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         callbackQueryHandler.setMessageSender(this);
         reminderHandler.setMessageSender(this);
         reminderService.setMessageSender(this);
+        fileHandler.setMessageSender(this);
     }
 
     /**
@@ -133,5 +137,16 @@ public class TelegramBot extends TelegramLongPollingBot implements MessageSender
         } catch (TelegramApiException e) {
             log.error("failed to answer callback query {}: {}", callbackQuery.getCallbackQueryId(), e.getMessage());
         }
+    }
+
+    /**
+     * Реализует запрос файла в Telegram API и возвращает объект File, содержащий путь к файлу.
+     * @param getFile объект GetFile, содержащий {@code fileId} запрашиваемого файла
+     * @return File, содержащий путь к файлу на серверах Telegram
+     * @throws TelegramApiException если произошла ошибка при запросе файла
+     */
+    @Override
+    public File executeGetFile(GetFile getFile) throws TelegramApiException {
+        return execute(getFile);
     }
 }

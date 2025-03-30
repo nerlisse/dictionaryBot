@@ -134,4 +134,7 @@ public class UserService {
         return user.getCurrentFolderId();
     }
 
+    public UserState getUserState(Long chatId) {
+        return userRepository.findByChatId(chatId).getUserState();
+    }
 }
