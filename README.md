@@ -41,11 +41,11 @@ _(разделители можно настроить в настройках)_
 
 ### 🔹 1. Клонирование репозитория
 ```bash
-git clone https://github.com/ваш-репозиторий/dictionary-bot.git
+git clone https://github.com/nerlisse/dictionaryBot.git
 ```
 
 ### 🔹 2. Настройка конфигурации
-Создайте или отредактируйте `application.properties`:
+Создайте или отредактируйте `src/main/resources/application.properties`:
 ```properties
 bot.token=ВАШ_ТОКЕН_БОТА
 spring.datasource.url=jdbc:mysql://localhost:3306/dictionary
