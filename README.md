@@ -35,9 +35,9 @@ _(разделители можно настроить в настройках)_
 
 ---
 
-## 🚀 Запуск проекта
+## 🚀 Запуск проекта (через Docker)
 
-Для запуска необходима Java 17+.
+Для запуска необходима Java 21+.
 
 ### 🔹 1. Клонирование репозитория
 ```bash
@@ -45,25 +45,26 @@ git clone https://github.com/nerlisse/dictionaryBot.git
 ```
 
 ### 🔹 2. Настройка конфигурации
-Создайте или отредактируйте `src/main/resources/application.properties`:
-```properties
-bot.token=ВАШ_ТОКЕН_БОТА
-spring.datasource.url=jdbc:mysql://localhost:3306/dictionary
-spring.datasource.username=user
-spring.datasource.password=pass
+Создайте`.env`:
+```env
+BOT_TOKEN=ВАШ_ТОКЕН
+SPRING_DATABASE=НАЗВАНИЕ_БАЗЫ_ДАННЫХ
+SPRING_DATASOURCE_USERNAME=ИМЯ_ПОЛЬЗОВАТЕЛЯ
+SPRING_DATASOURCE_PASSWORD=ПАРОЛЬ
+ROOT_PASSWORD=ПАРОЛЬ
 ```
 
 ### 🔹 3. Запуск бота
 ```bash
-./mvnw spring-boot:run
+docker-compose up
 ```
 
 ---
 
 ## 🛠 Технологии
-- **Java 17**
+- **Java 21**
 - **Spring Boot**
-- **Telegram Bot API**
+- **TelegramBots**
 - **MySQL**
 
 ---

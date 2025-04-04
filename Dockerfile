@@ -11,7 +11,7 @@ RUN ./mvnw clean package -DskipTests
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
-COPY --from=build /app/target/dictionaryBot-0.0.1-SNAPSHOT.jar ./app.jar
+COPY --from=build /app/target/dictionaryBot-1.0.jar ./app.jar
 
 EXPOSE 8080
 CMD ["java", "-jar", "app.jar"]
